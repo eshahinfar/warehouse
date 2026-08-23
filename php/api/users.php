@@ -1,0 +1,18 @@
+<?php
+declare(strict_types=1);
+require_once __DIR__ . '/bootstrap.php';
+
+function passwordPolicy(string $password,string $username): void { if(mb_strlen($password)<8) throw new BusinessError('رمز عبور باید حداقل ۸ کاراکتر باشد'); if(strcasecmp($password,$username)===0) throw new BusinessError('رمز عبور نباید با نام کاربری یکسان باشد'); }
+function allowedRoles(): array { return ['مدیر سیستم','انباردار','درخواست‌دهنده','ناظر']; }
+try{
+ $user=requireUser($auth);$method=$_SERVER['REQUEST_METHOD'];$body=requestBody();$path=parse_url($_SERVER['REQUEST_URI']??'',PHP_URL_PATH)?:'';
+ if($user['role']!=='مدیر سیستم') jsonResponse(['error'=>'دسترسی غیرمجاز'],403);
+ if($method==='GET'&&$path==='/api/users'){jsonResponse(['users'=>$db->all('SELECT id,username,full_name,role,active,must_change_password,created_at FROM users ORDER BY id ASC')]);}
+ if($method==='POST'&&$path==='/api/users'){
+  $username=trim((string)($body['username']??''));$full=trim((string)($body['fullName']??''));$role=(string)($body['role']??'');$pass=(string)($body['password']??'');if(!preg_match('/^[A-Za-z0-9._-]{3,60}$/',$username))throw new BusinessError('نام کاربری معتبر نیست');if($full==='')throw new BusinessError('نام و نام خانوادگی الزامی است');if(!in_array($role,allowedRoles(),true))throw new BusinessError('نقش معتبر نیست');passwordPolicy($pass,$username);if($db->one('SELECT id FROM users WHERE username=?',[$username]))jsonResponse(['error'=>'این نام کاربری قبلاً استفاده شده است'],409);$hash=$auth->hashPassword($pass);$now=gmdate('c');$db->execute('INSERT INTO users (username,password_hash,password_salt,full_name,role,active,created_at,must_change_password) VALUES (?,?,NULL,?,?,1,?,1)',[$username,$hash,$full,$role,$now]);jsonResponse(['id'=>(int)$db->lastInsertId()],201);
+ }
+ if(preg_match('~/api/users/(\d+)$~',$path,$m)&&$method==='PUT'){
+  $id=(int)$m[1];$target=$db->one('SELECT * FROM users WHERE id=?',[$id]);if(!$target)jsonResponse(['error'=>'کاربر یافت نشد'],404);if($id===(int)$user['id']&&array_key_exists('active',$body)&&$body['active']===false)throw new BusinessError('نمی‌توانید حساب خودتان را غیرفعال کنید');$role=$body['role']??null;if($role!==null&&!in_array($role,allowedRoles(),true))throw new BusinessError('نقش معتبر نیست');if($target['role']==='مدیر سیستم'&&$role!==null&&$role!=='مدیر سیستم'){if((int)($db->one("SELECT COUNT(*) c FROM users WHERE role='مدیر سیستم' AND id!=?",[$id])['c']??0)===0)throw new BusinessError('حداقل یک مدیر سیستم باید باقی بماند');}if($target['role']==='مدیر سیستم'&&array_key_exists('active',$body)&&!$body['active']){if((int)($db->one("SELECT COUNT(*) c FROM users WHERE role='مدیر سیستم' AND active=1 AND id!=?",[$id])['c']??0)===0)throw new BusinessError('حداقل یک مدیر سیستم فعال باید باقی بماند');}$db->execute('UPDATE users SET full_name=COALESCE(?,full_name),role=COALESCE(?,role),active=COALESCE(?,active) WHERE id=?',[$body['fullName']??null,$role,array_key_exists('active',$body)?($body['active']?1:0):null,$id]);if(!empty($body['newPassword'])){passwordPolicy((string)$body['newPassword'],(string)$target['username']);$hash=$auth->hashPassword((string)$body['newPassword']);$db->execute('UPDATE users SET password_hash=?,password_salt=NULL,must_change_password=1 WHERE id=?',[$hash,$id]);$db->execute('DELETE FROM sessions WHERE user_id=?',[$id]);}if(array_key_exists('active',$body)&&!$body['active'])$db->execute('DELETE FROM sessions WHERE user_id=?',[$id]);jsonResponse(['ok'=>true]);
+ }
+ jsonResponse(['error'=>'Not Found'],404);
+}catch(BusinessError $e){jsonResponse(['error'=>$e->getMessage()],$e->status);}catch(Throwable $e){error_log('users.php: '.$e->getMessage());jsonResponse(['error'=>'خطای داخلی سرور'],500);}
