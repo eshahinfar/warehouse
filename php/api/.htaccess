@@ -4,6 +4,7 @@ Options -Indexes
 RewriteRule ^login/?$ login.php [L,QSA]
 RewriteRule ^logout/?$ logout.php [L,QSA]
 RewriteRule ^me/?$ me.php [L,QSA]
+RewriteRule ^setup/?$ setup.php [L,QSA]
 RewriteRule ^products/?$ products.php [L,QSA]
 RewriteRule ^transactions/?$ transactions.php [L,QSA]
 RewriteRule ^stock-in/?$ transactions.php [L,QSA]
