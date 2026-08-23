@@ -2,29 +2,15 @@
 /* ======================================================================
    لایه‌های سخت‌سازی امنیتی
 
-   ۱. محدودسازی تلاش ورود (ضدBrute-Force) — حالا در پایگاه‌داده ذخیره
-      می‌شود، نه فقط در حافظه؛ پس با ری‌استارت سرور (یا کرش عمدی توسط
-      مهاجم) قفل باز نمی‌شود.
-   ۲. هدرهای امنیتی HTTP استاندارد (HSTS، CSP، ضدClickjacking، ...)
-      CSP دیگر به 'unsafe-inline' برای اسکریپت نیاز ندارد، چون همه‌ی
-      onclickهای درون‌خطی فرانت‌اند به شنونده‌ی رویداد تبدیل شده‌اند.
-   ۳. بررسی Origin روی درخواست‌های تغییردهنده (دفاع CSRF).
-
-      نکته‌ی مهم (باگ اصلاح‌شده): نسخه قبلی فقط localhost را مجاز
-      می‌دانست، بنابراین هر مرورگری که با آدرس شبکه داخلی
-      (http://192.168.1.23:8080) وصل می‌شد حتی نمی‌توانست لاگین کند —
-      یعنی کل محصول در شبکه کار نمی‌کرد. حالا آدرس‌های IPv4 محلی سرور
-      به‌صورت خودکار مجاز می‌شوند و در صورت تغییر آی‌پی (DHCP) هم فهرست
-      دوباره ساخته می‌شود.
+   Originهای مجاز علاوه بر localhost و آدرس‌های LAN می‌توانند از طریق
+   PUBLIC_URL / EXTRA_ALLOWED_ORIGINS برای استقرار پشت reverse proxy
+   (مانند Render) تعریف شوند.
    ====================================================================== */
 
 const os = require('node:os');
 const config = require('./config');
 const { db } = require('./db');
 
-// ---------------------------------------------------------------------
-// ۱. محدودسازی تلاش ورود (ماندگار در پایگاه‌داده)
-// ---------------------------------------------------------------------
 function getLoginState(ip) {
   const row = db.prepare('SELECT * FROM login_attempts WHERE ip = ?').get(ip);
   if (!row) return { attempts: [], blockedUntil: null };
@@ -42,7 +28,6 @@ function saveLoginState(ip, state) {
 function checkLoginRateLimit(ip) {
   const state = getLoginState(ip);
   const now = Date.now();
-
   if (state.blockedUntil && state.blockedUntil > now) {
     return { allowed: false, retryAfterSeconds: Math.ceil((state.blockedUntil - now) / 1000) };
   }
@@ -51,7 +36,6 @@ function checkLoginRateLimit(ip) {
     state.attempts = [];
     saveLoginState(ip, state);
   }
-
   const recent = state.attempts.filter(t => now - t < config.loginRateLimit.windowMs);
   if (recent.length >= config.loginRateLimit.maxAttempts) {
     state.attempts = recent;
@@ -59,7 +43,6 @@ function checkLoginRateLimit(ip) {
     saveLoginState(ip, state);
     return { allowed: false, retryAfterSeconds: Math.ceil(config.loginRateLimit.blockMs / 1000) };
   }
-
   if (recent.length !== state.attempts.length) {
     state.attempts = recent;
     saveLoginState(ip, state);
@@ -77,7 +60,6 @@ function recordLoginSuccess(ip) {
   db.prepare('DELETE FROM login_attempts WHERE ip = ?').run(ip);
 }
 
-// پاک‌سازی دوره‌ای رکوردهای قدیمی
 function cleanupLoginAttempts() {
   const now = Date.now();
   const rows = db.prepare('SELECT ip, attempts, blocked_until FROM login_attempts').all();
@@ -91,9 +73,6 @@ function cleanupLoginAttempts() {
   }
 }
 
-// ---------------------------------------------------------------------
-// ۲. هدرهای امنیتی
-// ---------------------------------------------------------------------
 function applySecurityHeaders(res, isHttps) {
   res.setHeader('X-Content-Type-Options', 'nosniff');
   res.setHeader('X-Frame-Options', 'DENY');
@@ -107,9 +86,6 @@ function applySecurityHeaders(res, isHttps) {
   }
 }
 
-// ---------------------------------------------------------------------
-// ۳. بررسی Origin برای درخواست‌های تغییردهنده (دفاع CSRF)
-// ---------------------------------------------------------------------
 function localIpv4Addresses() {
   const result = [];
   const nets = os.networkInterfaces();
@@ -130,29 +106,25 @@ function buildAllowedOrigins() {
     origins.add(`https://${config.domain}`);
     if (config.httpsPort !== 443) origins.add(`https://${config.domain}:${config.httpsPort}`);
   } else {
-    // حالت شبکه داخلی: هر آدرس IPv4 خود این کامپیوتر یک مبدأ معتبر است،
-    // چون همکاران دقیقاً با همان آدرس‌ها به سامانه وصل می‌شوند.
     for (const addr of localIpv4Addresses()) {
       origins.add(`http://${addr}:${config.httpPort}`);
     }
   }
 
+  if (config.publicUrl) origins.add(config.publicUrl);
   config.extraAllowedOrigins.forEach(o => origins.add(o));
   return origins;
 }
 
 let allowedOrigins = buildAllowedOrigins();
 
-// آی‌پی سرور ممکن است با DHCP عوض شود؛ هر ۱۰ دقیقه فهرست بازسازی می‌شود
-// تا سامانه بعد از تغییر آی‌پی بدون ری‌استارت به کار ادامه دهد.
 function refreshAllowedOrigins() {
   allowedOrigins = buildAllowedOrigins();
 }
 
 function isOriginAllowed(originHeader) {
-  if (!originHeader) return true; // کلاینت‌های غیرمرورگری (curl، ابزار داخلی) Origin نمی‌فرستند
+  if (!originHeader) return true;
   if (allowedOrigins.has(originHeader)) return true;
-  // بازسازی یک‌باره در صورت تغییر آی‌پی، بعد یک تلاش دوباره
   refreshAllowedOrigins();
   return allowedOrigins.has(originHeader);
 }
