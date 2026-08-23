@@ -1,0 +1,14 @@
+Options -Indexes
+DirectoryIndex index.html
+RewriteEngine On
+
+# The PHP API lives in /api and has its own routing rules.
+RewriteRule ^api(?:/|$) - [L]
+
+# Never serve PHP internals or configuration files directly.
+RewriteRule ^src(?:/|$) - [F,L]
+RewriteRule ^config\.php$ - [F,L]
+RewriteRule ^schema\.sql$ - [F,L]
+
+# Prevent access to common project metadata if accidentally uploaded.
+RewriteRule ^(?:package\.json|package-lock\.json|README(?:\.md)?|\.git)(?:/|$) - [F,L]
