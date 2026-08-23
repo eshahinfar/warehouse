@@ -1,0 +1,11 @@
+Options -Indexes
+
+RewriteEngine On
+
+# Keep API endpoints clean: /api/login -> /api/login.php
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^api/([A-Za-z0-9_-]+)$ api/$1.php [L,QSA]
+
+# Prevent direct access to PHP source classes.
+RewriteRule ^src/ - [F,L]
