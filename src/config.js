@@ -33,13 +33,17 @@ const config = {
 
   httpPort: Number(pick('PORT', 'httpPort', 8080)),
 
-  // اگر برنامه پشت reverse proxy (مثل Render/nginx) قرار دارد، این را true کنید
+  // اگر برنامه پشت reverse proxy (مثل Render) قرار دارد، این را true کنید
   // تا آی‌پی واقعی کاربر از X-Forwarded-For خوانده شود.
   trustProxy: String(pick('TRUST_PROXY', 'trustProxy', false)) === 'true',
 
   minPasswordLength: Number(pick('MIN_PASSWORD_LENGTH', 'minPasswordLength', 8)),
   initialAdminPassword: String(pick('ADMIN_INITIAL_PASSWORD', 'initialAdminPassword', '111111')),
   maxPageSize: Number(pick('MAX_PAGE_SIZE', 'maxPageSize', 200)),
+
+  // محل پایدار داده‌ها. در Render این مقدار را روی Mount Path دیسک،
+  // مثلاً /var/data، قرار دهید. در اجرای محلی همچنان data/ استفاده می‌شود.
+  dataDir: path.resolve(pick('DATA_DIR', 'dataDir', path.join(__dirname, '..', 'data'))),
 
   httpsPort: Number(pick('HTTPS_PORT', 'httpsPort', 443)),
   domain: pick('DOMAIN', 'domain', ''),
