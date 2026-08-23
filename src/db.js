@@ -2,33 +2,27 @@
 /* ======================================================================
    لایه پایگاه داده — سیستم انبارداری تحت شبکه
    از node:sqlite (قابلیت بومی Node.js 22+) استفاده می‌کند، بدون هیچ
-   بسته خارجی. فایل دیتابیس یک فایل تکی روی دیسک است (data/warehouse.db)
-   که به‌سادگی قابل پشتیبان‌گیری (کپی فایل) است.
-
-   این فایل علاوه بر تعریف اسکیما، دو چیز مهم دیگر هم فراهم می‌کند:
-     ۱. مهاجرت (migration) امن برای پایگاه‌داده‌های موجود — ستون‌های جدید
-        فقط در صورت نبودن اضافه می‌شوند، پس نسخه‌های قبلی بدون از دست
-        رفتن داده به‌روزرسانی می‌شوند.
-     ۲. inTransaction() — پوششی برای اجرای اتمیک چند دستور. اگر وسط کار
-        خطایی رخ دهد (یا برق برود) هیچ نیمه‌عملیاتی روی دیسک نمی‌ماند.
+   بسته خارجی. فایل دیتابیس یک فایل تکی است که مسیر آن از DATA_DIR
+   می‌آید تا در Render روی Persistent Disk ذخیره شود.
    ====================================================================== */
 
 const path = require('node:path');
 const fs = require('node:fs');
 const { DatabaseSync } = require('node:sqlite');
+const config = require('./config');
 
-const DATA_DIR = path.join(__dirname, '..', 'data');
+// در Render، DATA_DIR باید روی Mount Path دیسک Persistent قرار بگیرد،
+// مثلاً /var/data. در اجرای محلی مقدار پیش‌فرض همچنان data/ است.
+const DATA_DIR = config.dataDir;
 if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
 
 const DB_PATH = path.join(DATA_DIR, 'warehouse.db');
+console.log(`[پایگاه داده] مسیر SQLite: ${DB_PATH}`);
 const db = new DatabaseSync(DB_PATH);
 
 db.exec('PRAGMA journal_mode = WAL;');
 db.exec('PRAGMA foreign_keys = ON;');
 
-// ======================================================================
-// Schema
-// ======================================================================
 db.exec(`
 CREATE TABLE IF NOT EXISTS users (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -36,24 +30,22 @@ CREATE TABLE IF NOT EXISTS users (
   password_hash TEXT NOT NULL,
   password_salt TEXT NOT NULL,
   full_name TEXT NOT NULL,
-  role TEXT NOT NULL,           -- 'مدیر سیستم' | 'انباردار' | 'درخواست‌دهنده' | 'ناظر'
+  role TEXT NOT NULL,
   active INTEGER NOT NULL DEFAULT 1,
   created_at TEXT NOT NULL,
   must_change_password INTEGER NOT NULL DEFAULT 0
 );
-
 CREATE TABLE IF NOT EXISTS sessions (
   token TEXT PRIMARY KEY,
   user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   created_at TEXT NOT NULL,
   expires_at TEXT NOT NULL
 );
-
 CREATE TABLE IF NOT EXISTS products (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   code TEXT NOT NULL UNIQUE,
   name TEXT NOT NULL,
-  type TEXT NOT NULL DEFAULT 'مصرفی',   -- 'مصرفی' | 'قابل‌برگشت'
+  type TEXT NOT NULL DEFAULT 'مصرفی',
   unit TEXT NOT NULL,
   stock INTEGER NOT NULL DEFAULT 0,
   min_stock INTEGER NOT NULL DEFAULT 0,
@@ -63,19 +55,14 @@ CREATE TABLE IF NOT EXISTS products (
   created_at TEXT NOT NULL,
   updated_at TEXT NOT NULL
 );
-
-CREATE TABLE IF NOT EXISTS counters (
-  kind TEXT PRIMARY KEY,   -- 'in' | 'out' | 'ret' | 'req' | 'custIssue' | 'custReturn' | 'repIn' | 'repOut'
-  value INTEGER NOT NULL DEFAULT 0
-);
-
+CREATE TABLE IF NOT EXISTS counters (kind TEXT PRIMARY KEY, value INTEGER NOT NULL DEFAULT 0);
 CREATE TABLE IF NOT EXISTS transactions (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   doc_number TEXT NOT NULL,
   product_id INTEGER NOT NULL REFERENCES products(id),
-  type TEXT NOT NULL,             -- 'ورود' | 'خروج' | 'مرجوعی'
+  type TEXT NOT NULL,
   quantity INTEGER NOT NULL,
-  date TEXT NOT NULL,             -- ISO (Gregorian) date, YYYY-MM-DD
+  date TEXT NOT NULL,
   source TEXT,
   po_number TEXT,
   requesting_unit TEXT,
@@ -90,7 +77,6 @@ CREATE TABLE IF NOT EXISTS transactions (
   created_by_user_id INTEGER REFERENCES users(id),
   created_at TEXT NOT NULL
 );
-
 CREATE TABLE IF NOT EXISTS requests (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   doc_number TEXT NOT NULL,
@@ -98,13 +84,12 @@ CREATE TABLE IF NOT EXISTS requests (
   quantity INTEGER NOT NULL,
   date TEXT NOT NULL,
   priority TEXT NOT NULL DEFAULT 'عادی',
-  status TEXT NOT NULL DEFAULT 'در انتظار',   -- در انتظار | تأمین شده | لغو شده
+  status TEXT NOT NULL DEFAULT 'در انتظار',
   notes TEXT,
   auto INTEGER NOT NULL DEFAULT 0,
   created_by_user_id INTEGER REFERENCES users(id),
   created_at TEXT NOT NULL
 );
-
 CREATE TABLE IF NOT EXISTS custody_records (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   doc_number TEXT NOT NULL,
@@ -116,7 +101,7 @@ CREATE TABLE IF NOT EXISTS custody_records (
   expected_return TEXT,
   condition_out TEXT,
   notes TEXT,
-  status TEXT NOT NULL DEFAULT 'باز',   -- باز | بسته | باطل
+  status TEXT NOT NULL DEFAULT 'باز',
   return_date TEXT,
   condition_in TEXT,
   return_notes TEXT,
@@ -124,7 +109,6 @@ CREATE TABLE IF NOT EXISTS custody_records (
   created_by_user_id INTEGER REFERENCES users(id),
   created_at TEXT NOT NULL
 );
-
 CREATE TABLE IF NOT EXISTS repair_records (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   doc_number TEXT NOT NULL,
@@ -134,7 +118,7 @@ CREATE TABLE IF NOT EXISTS repair_records (
   submitted_by TEXT NOT NULL,
   repair_shop TEXT,
   issue_description TEXT NOT NULL,
-  status TEXT NOT NULL DEFAULT 'در حال تعمیر',   -- در حال تعمیر | تکمیل شده | باطل
+  status TEXT NOT NULL DEFAULT 'در حال تعمیر',
   result_date TEXT,
   result TEXT,
   technician TEXT,
@@ -145,7 +129,6 @@ CREATE TABLE IF NOT EXISTS repair_records (
   created_by_user_id INTEGER REFERENCES users(id),
   created_at TEXT NOT NULL
 );
-
 CREATE TABLE IF NOT EXISTS audit_log (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   timestamp TEXT NOT NULL,
@@ -155,15 +138,11 @@ CREATE TABLE IF NOT EXISTS audit_log (
   reason TEXT,
   performed_by_user_id INTEGER REFERENCES users(id)
 );
-
--- محدودیت تلاش ورود؛ برخلاف نسخه قبلی که فقط در حافظه بود و با هر
--- ری‌استارت سرور پاک می‌شد، این‌جا ماندگار است.
 CREATE TABLE IF NOT EXISTS login_attempts (
   ip TEXT PRIMARY KEY,
-  attempts TEXT NOT NULL DEFAULT '[]',   -- JSON array of epoch ms
+  attempts TEXT NOT NULL DEFAULT '[]',
   blocked_until INTEGER
 );
-
 CREATE INDEX IF NOT EXISTS idx_transactions_product ON transactions(product_id);
 CREATE INDEX IF NOT EXISTS idx_transactions_date ON transactions(date);
 CREATE INDEX IF NOT EXISTS idx_requests_product ON requests(product_id);
@@ -171,9 +150,6 @@ CREATE INDEX IF NOT EXISTS idx_custody_product ON custody_records(product_id);
 CREATE INDEX IF NOT EXISTS idx_repair_product ON repair_records(product_id);
 `);
 
-// ======================================================================
-// مهاجرت — افزودن ستون‌های نسخه جدید به پایگاه‌داده‌های موجود
-// ======================================================================
 function ensureColumn(table, column, definition) {
   const cols = db.prepare(`PRAGMA table_info(${table})`).all();
   if (!cols.some(c => c.name === column)) {
@@ -182,24 +158,15 @@ function ensureColumn(table, column, definition) {
   }
 }
 
-// ابطال سند به‌جای حذف فیزیکی: شماره سند دست‌نخورده می‌ماند و ردّ حسابرسی
-// حفظ می‌شود (نسخه قبلی سند را پاک و بقیه را دوباره شماره‌گذاری می‌کرد که
-// باعث می‌شد ارجاع‌های لاگ حسابرسی و رسیدهای چاپ‌شده به سند دیگری بیفتد).
-ensureColumn('transactions', 'status', "TEXT NOT NULL DEFAULT 'معتبر'");     // معتبر | باطل
+ensureColumn('transactions', 'status', "TEXT NOT NULL DEFAULT 'معتبر'");
 ensureColumn('transactions', 'voided_at', 'TEXT');
 ensureColumn('transactions', 'void_reason', 'TEXT');
 ensureColumn('transactions', 'voided_by_user_id', 'INTEGER');
-
 ensureColumn('custody_records', 'void_reason', 'TEXT');
 ensureColumn('repair_records', 'void_reason', 'TEXT');
-
-// بایگانی کالا به‌جای حذف زنجیره‌ای اسناد
 ensureColumn('products', 'active', 'INTEGER NOT NULL DEFAULT 1');
 ensureColumn('products', 'archived_at', 'TEXT');
 
-// شماره سند باید یکتا باشد. اگر پایگاه‌داده‌ی موجود به‌خاطر باگ
-// شماره‌گذاری مجدد نسخه قبلی شماره تکراری داشته باشد، ساخت ایندکس
-// شکست می‌خورد؛ در آن صورت فقط هشدار می‌دهیم و کار متوقف نمی‌شود.
 function tryUniqueIndex(name, table, column) {
   try {
     db.exec(`CREATE UNIQUE INDEX IF NOT EXISTS ${name} ON ${table}(${column})`);
@@ -209,7 +176,6 @@ function tryUniqueIndex(name, table, column) {
     ).all();
     console.warn(`[هشدار] شماره سند تکراری در جدول ${table} یافت شد؛ ایندکس یکتا ساخته نشد.`);
     dups.forEach(d => console.warn(`   شماره ${d.v} → ${d.c} بار تکرار شده`));
-    console.warn('   این نتیجه‌ی باگ شماره‌گذاری مجدد در نسخه قبلی است. پس از اصلاح دستی، سرور را دوباره اجرا کنید.');
   }
 }
 tryUniqueIndex('idx_transactions_docnum', 'transactions', 'doc_number');
@@ -219,19 +185,13 @@ tryUniqueIndex('idx_repair_docnum', 'repair_records', 'doc_number');
 
 db.exec('CREATE INDEX IF NOT EXISTS idx_transactions_status ON transactions(status);');
 
-// Seed default counters if empty
 const counterKinds = ['in', 'out', 'ret', 'req', 'custIssue', 'custReturn', 'repIn', 'repOut'];
 const insertCounter = db.prepare('INSERT OR IGNORE INTO counters (kind, value) VALUES (?, 0)');
 for (const k of counterKinds) insertCounter.run(k);
 
-// ======================================================================
-// اجرای اتمیک — همه‌ی عملیات چندمرحله‌ای (مثل «کم کردن موجودی + ثبت سند»)
-// باید داخل این تابع اجرا شوند تا یا کامل انجام شوند یا اصلاً انجام نشوند.
-// ======================================================================
 let transactionDepth = 0;
-
 function inTransaction(fn) {
-  if (transactionDepth > 0) return fn();   // تراکنش تودرتو: از تراکنش بیرونی استفاده می‌شود
+  if (transactionDepth > 0) return fn();
   db.exec('BEGIN IMMEDIATE');
   transactionDepth++;
   try {
