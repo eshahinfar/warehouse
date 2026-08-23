@@ -1,6 +1,6 @@
 RewriteEngine On
+Options -Indexes
 
-# Keep existing PHP endpoints accessible by clean /api/... URLs.
 RewriteRule ^login/?$ login.php [L,QSA]
 RewriteRule ^logout/?$ logout.php [L,QSA]
 RewriteRule ^me/?$ me.php [L,QSA]
@@ -15,6 +15,5 @@ RewriteRule ^repair(?:/([0-9]+))?/(send|result|void)/?$ repair.php [L,QSA]
 RewriteRule ^documents/([0-9]+)/?$ documents.php [L,QSA]
 RewriteRule ^dashboard/?$ dashboard.php [L,QSA]
 RewriteRule ^audit-log/?$ dashboard.php [L,QSA]
-
-# Do not expose source files through directory browsing.
-Options -Indexes
+RewriteRule ^users(?:/([0-9]+))?/?$ users.php [L,QSA]
+RewriteRule ^maintenance/(stock-check|stock-repair)/?$ maintenance.php [L,QSA]
