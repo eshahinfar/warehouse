@@ -4,24 +4,28 @@ declare(strict_types=1);
 final class Auth
 {
     private const SESSION_DURATION_SECONDS = 43200; // 12 hours
-    private Database $db;
 
-    public function __construct(Database $db)
+    public function __construct(private Database $db)
     {
-        $this->db = $db;
     }
 
-    public function hashPassword(string $password): array
+    public function hashPassword(string $password): string
     {
-        $salt = random_bytes(16);
-        $hash = hash('sha512', $salt . $password);
-        return [bin2hex($hash), bin2hex($salt)];
+        $hash = password_hash($password, PASSWORD_DEFAULT);
+        if ($hash === false) {
+            throw new RuntimeException('Password hashing failed');
+        }
+        return $hash;
     }
 
-    public function verifyPassword(string $password, string $storedHash, string $storedSalt): bool
+    public function verifyPassword(string $password, string $storedHash): bool
     {
-        $hash = hash('sha512', hex2bin($storedSalt) . $password);
-        return hash_equals($storedHash, $hash);
+        return password_verify($password, $storedHash);
+    }
+
+    public function needsRehash(string $storedHash): bool
+    {
+        return password_needs_rehash($storedHash, PASSWORD_DEFAULT);
     }
 
     public function createSession(int $userId): string
@@ -51,11 +55,13 @@ final class Auth
         }
 
         $user = $this->db->one(
-            'SELECT id, username, full_name, role, active, must_change_password FROM users WHERE id = ?',
+            'SELECT id, username, full_name, role, active, must_change_password, password_hash FROM users WHERE id = ?',
             [$session['user_id']]
         );
 
-        return ($user && (int)$user['active'] === 1) ? $user : null;
+        if (!$user || (int)$user['active'] !== 1) return null;
+        unset($user['password_hash']);
+        return $user;
     }
 
     public function destroySession(string $token): void
