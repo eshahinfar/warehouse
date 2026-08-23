@@ -2,14 +2,6 @@
 /* ======================================================================
    سرور اصلی سیستم انبارداری تحت شبکه
    بدون هیچ بسته npm خارجی — فقط ماژول‌های داخلی Node.js (>=22.5)
-
-   دو حالت اجرا (از config.json یا متغیر محیطی WAREHOUSE_MODE):
-     - lan   : فقط HTTP روی شبکه داخلی کارخانه (بدون گواهی)
-     - https : HTTPS واقعی برای دسترسی از طریق اینترنت با دامنه ثابت،
-               به‌همراه یک سرور HTTP کمکی روی پورت ۸۰ برای تمدید خودکار
-               گواهی (چالش ACME/certbot) و هدایت به HTTPS
-
-   اجرا: node src/server.js   (یا: npm start)
    ====================================================================== */
 
 const http = require('node:http');
@@ -36,15 +28,11 @@ const { startScheduledBackups } = require('./backup');
 const { handleUpgrade, broadcast: broadcastChange } = require('./ws-server');
 
 const PUBLIC_DIR = path.join(__dirname, '..', 'public');
-
-// مسیرهایی که حتی با رمز عبور تغییرنیافته هم باید در دسترس باشند،
-// وگرنه کاربر در بن‌بست می‌افتد.
 const PASSWORD_CHANGE_EXEMPT = new Set(['/api/me', '/api/me/password', '/api/logout']);
 
 ensureDefaultAdmin();
 setInterval(cleanupExpiredSessions, 60 * 60 * 1000);
 setInterval(cleanupLoginAttempts, 30 * 60 * 1000);
-// آی‌پی سرور ممکن است با DHCP عوض شود؛ فهرست مبدأهای مجاز تازه می‌ماند
 setInterval(refreshAllowedOrigins, 10 * 60 * 1000);
 startScheduledBackups();
 
@@ -60,17 +48,14 @@ const allRouteDefs = [
   ...require('./routes/reports-routes'),
   ...require('./routes/maintenance-routes')
 ];
-for (const def of allRouteDefs) {
-  router[def.method.toLowerCase()](def.path, def);
-}
+for (const def of allRouteDefs) router[def.method.toLowerCase()](def.path, def);
 
-// ======================================================================
-// هسته مشترک پردازش درخواست — چه روی HTTP (حالت lan) و چه روی HTTPS
-// (حالت اینترنتی) از همین یک تابع عبور می‌کند تا هیچ منطقی دوبار نوشته
-// نشود.
-// ======================================================================
-async function handleRequest(req, res, isHttps) {
+async function handleRequest(req, res, directHttps) {
   try {
+    // Render/nginx terminates TLS before forwarding the request to Node.
+    // Treat X-Forwarded-Proto=https as HTTPS for secure cookies and HSTS.
+    const forwardedProto = String(req.headers['x-forwarded-proto'] || '').split(',')[0].trim().toLowerCase();
+    const isHttps = directHttps || forwardedProto === 'https';
     applySecurityHeaders(res, isHttps);
 
     const parsedUrl = new URL(req.url, `http://${req.headers.host}`);
@@ -94,8 +79,8 @@ async function handleRequest(req, res, isHttps) {
 
     const { handler: routeDef, params } = match;
     const clientIp = getClientIp(req);
-
     const isLoginRoute = pathname === '/api/login' && req.method === 'POST';
+
     if (isLoginRoute) {
       const rl = checkLoginRateLimit(clientIp);
       if (!rl.allowed) {
@@ -120,10 +105,6 @@ async function handleRequest(req, res, isHttps) {
         sendJson(res, 403, { error: 'دسترسی شما برای این عملیات کافی نیست' });
         return;
       }
-
-      // اجبار تغییر رمز اولیه — سمت سرور، نه فقط یک بنر در رابط کاربری.
-      // تا وقتی رمز پیش‌فرض عوض نشده، تنها مسیرهای مجاز مشاهده‌ی حساب،
-      // تغییر رمز و خروج هستند.
       if (user.must_change_password && !PASSWORD_CHANGE_EXEMPT.has(pathname)) {
         sendJson(res, 403, {
           error: 'پیش از استفاده از سامانه باید رمز عبور اولیه را تغییر دهید (تب «حساب کاربری»).',
@@ -145,15 +126,12 @@ async function handleRequest(req, res, isHttps) {
 
     const query = {};
     for (const [k, v] of parsedUrl.searchParams) query[k] = v;
-
     const ctx = { params, body, query, user, sessionToken };
 
     let result;
     try {
       result = await routeDef.handler(ctx);
     } catch (err) {
-      // خطاهای اعتبارسنجی و قواعد کسب‌وکار، خطای کاربر هستند نه خطای
-      // سرور؛ با پیام فارسی و کد مناسب برمی‌گردند (نه 500 مبهم).
       if (err instanceof ValidationError) {
         if (isLoginRoute) recordLoginFailure(clientIp);
         sendJson(res, 400, { error: err.message });
@@ -172,9 +150,6 @@ async function handleRequest(req, res, isHttps) {
       else recordLoginFailure(clientIp);
     }
 
-    // اطلاع آنی به سایر کاربران متصل: هر عملیات موفق تغییردهنده (ثبت/
-    // ویرایش/حذف سند، کالا، کاربر و...) پیام کوتاهی برای تمام کلاینت‌های
-    // WebSocket ارسال می‌کند تا رابط کاربری‌شان فوراً تازه‌سازی شود.
     if (['POST', 'PUT', 'DELETE'].includes(req.method) && result.status >= 200 && result.status < 300 && !isLoginRoute) {
       broadcastChange({ resource: pathname });
     }
@@ -182,7 +157,6 @@ async function handleRequest(req, res, isHttps) {
     if (result.setSessionToken) setSessionCookie(res, result.setSessionToken, isHttps);
     if (result.clearSessionToken) clearSessionCookie(res);
     sendJson(res, result.status || 200, result.body || {});
-
   } catch (err) {
     console.error('خطای سرور:', err);
     sendJson(res, 500, { error: 'خطای داخلی سرور' });
@@ -195,9 +169,6 @@ function printBanner(lines) {
   console.log('============================================================');
 }
 
-// ======================================================================
-// WebSocket upgrade handling — احراز هویت با همان کوکی نشست HTTP معمولی
-// ======================================================================
 function onUpgrade(req, socket, head) {
   if (!req.url || !req.url.startsWith('/ws')) {
     socket.destroy();
@@ -229,7 +200,6 @@ if (config.mode === 'https') {
     console.error('راهنمای دریافت گواهی رایگان در README.md، بخش «اتصال اینترنتی» موجود است.');
     process.exit(1);
   }
-
   if (!fs.existsSync(config.webrootPath)) fs.mkdirSync(config.webrootPath, { recursive: true });
   const challengeDir = path.join(config.webrootPath, '.well-known', 'acme-challenge');
   if (!fs.existsSync(challengeDir)) fs.mkdirSync(challengeDir, { recursive: true });
@@ -250,7 +220,6 @@ if (config.mode === 'https') {
       `آدرس عمومی: https://${config.domain}${config.httpsPort !== 443 ? ':' + config.httpsPort : ''}`
     ]);
   });
-
   watchAndReloadCert(httpsServer, config.certPath, config.keyPath);
 
   const redirectServer = http.createServer((req, res) => {
@@ -266,7 +235,6 @@ if (config.mode === 'https') {
   redirectServer.listen(config.httpPort, () => {
     console.log(` سرور هدایت HTTP→HTTPS و تمدید گواهی روی پورت ${config.httpPort} فعال شد`);
   });
-
 } else {
   const server = http.createServer((req, res) => handleRequest(req, res, false));
   server.on('upgrade', onUpgrade);
@@ -277,7 +245,5 @@ if (config.mode === 'https') {
     addresses.forEach(addr => lines.push(`روی شبکه داخلی    : http://${addr}:${config.httpPort}`));
     printBanner(lines);
     console.log(' مبدأهای مجاز (برای بررسی CSRF): ' + describeAllowedOrigins().join('، '));
-    console.log(' اگر کاربری با آدرس دیگری (مثلاً نام میزبان یا آی‌پی جدید) وصل می‌شود،');
-    console.log(' آن آدرس را در config.json → extraAllowedOrigins اضافه کنید.');
   });
 }
