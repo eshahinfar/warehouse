@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>سیستم انبارداری تحت شبکه</title>
+<style>
+/* آیکون‌های درون‌خطی SVG (بدون وابستگی خارجی) */
+.icon{display:inline-block;width:1em;height:1em;background-color:currentColor;
+  -webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;-webkit-mask-position:center;mask-position:center;
+  -webkit-mask-size:contain;mask-size:contain;vertical-align:-0.125em;flex-shrink:0;}
+.icon-check{-webkit-mask-image:url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20d%3D%22M4%2012l5%205L20%206%22%20stroke%3D%22%23000%22%20stroke-width%3D%222.4%22%20fill%3D%22none%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3C/svg%3E');mask-image:url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20d%3D%22M4%2012l5%205L20%206%22%20stroke%3D%22%23000%22%20stroke-width%3D%222.4%22%20fill%3D%22none%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3C/svg%3E');}
+.icon-xmark{-webkit-mask-image:url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20d%3D%22M5%205l14%2014M19%205L5%2019%22%20stroke%3D%22%23000%22%20stroke-width%3D%222.4%22%20fill%3D%22none%22%20stroke-linecap%3D%22round%22/%3E%3C/svg%3E');mask-image:url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20d%3D%22M5%205l14%2014M19%205L5%2019%22%20stroke%3D%22%23000%22%20stroke-width%3D%222.4%22%20fill%3D%22none%22%20stroke-linecap%3D%22round%22/%3E%3C/svg%3E');}
+.icon-plus{-webkit-mask-image:url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20d%3D%22M12%204v16M4%2012h16%22%20stroke%3D%22%23000%22%20stroke-width%3D%222.4%22%20fill%3D%22none%22%20stroke-linecap%3D%22round%22/%3E%3C/svg%3E');mask-image:url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20d%3D%22M12%204v16M4%2012h16%22%20stroke%3D%22%23000%22%20stroke-width%3D%222.4%22%20fill%3D%22none%22%20stroke-linecap%3D%22round%22/%3E%3C/svg%3E');}
+.icon-pen{-webkit-mask-image:url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20d%3D%22M4%2020l1-4.5L15.5%205%2019%208.5%208.5%2019%204%2020z%22%20stroke%3D%22%23000%22%20stroke-width%3D%221.8%22%20fill%3D%22none%22%20stroke-linejoin%3D%22round%22/%3E%3Cpath%20d%3D%22M13%207l4%204%22%20stroke%3D%22%23000%22%20stroke-width%3D%221.8%22/%3E%3C/svg%3E');mask-image:url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20d%3D%22M4%2020l1-4.5L15.5%205%2019%208.5%208.5%2019%204%2020z%22%20stroke%3D%22%23000%22%20stroke-width%3D%221.8%22%20fill%3D%22none%22%20stroke-linejoin%3D%22round%22/%3E%3Cpath%20d%3D%22M13%207l4%204%22%20stroke%3D%22%23000%22%20stroke-width%3D%221.8%22/%3E%3C/svg%3E');}
+.icon-trash{-webkit-mask-image:url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20d%3D%22M5%207h14M9%207V4h6v3M6%207l1%2013h10l1-13%22%20stroke%3D%22%23000%22%20stroke-width%3D%222%22%20fill%3D%22none%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3Cpath%20d%3D%22M10%2011v6M14%2011v6%22%20stroke%3D%22%23000%22%20stroke-width%3D%221.8%22%20stroke-linecap%3D%22round%22/%3E%3C/svg%3E');mask-image:url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20d%3D%22M5%207h14M9%207V4h6v3M6%207l1%2013h10l1-13%22%20stroke%3D%22%23000%22%20stroke-width%3D%222%22%20fill%3D%22none%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3Cpath%20d%3D%22M10%2011v6M14%2011v6%22%20stroke%3D%22%23000%22%20stroke-width%3D%221.8%22%20stroke-linecap%3D%22round%22/%3E%3C/svg%3E');}
+.icon-magnifying-glass{-webkit-mask-image:url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2024%2024%22%3E%3Ccircle%20cx%3D%2210.5%22%20cy%3D%2210.5%22%20r%3D%226.5%22%20stroke%3D%22%23000%22%20stroke-width%3D%222.2%22%20fill%3D%22none%22/%3E%3Cpath%20d%3D%22M15.5%2015.5L21%2021%22%20stroke%3D%22%23000%22%20stroke-width%3D%222.2%22%20stroke-linecap%3D%22round%22/%3E%3C/svg%3E');mask-image:url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2024%2024%22%3E%3Ccircle%20cx%3D%2210.5%22%20cy%3D%2210.5%22%20r%3D%226.5%22%20stroke%3D%22%23000%22%20stroke-width%3D%222.2%22%20fill%3D%22none%22/%3E%3Cpath%20d%3D%22M15.5%2015.5L21%2021%22%20stroke%3D%22%23000%22%20stroke-width%3D%222.2%22%20stroke-linecap%3D%22round%22/%3E%3C/svg%3E');}
+.icon-triangle-exclamation{-webkit-mask-image:url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20d%3D%22M12%203l10%2018H2L12%203z%22%20stroke%3D%22%23000%22%20stroke-width%3D%221.8%22%20fill%3D%22none%22%20stroke-linejoin%3D%22round%22/%3E%3Cpath%20d%3D%22M12%2010v4%22%20stroke%3D%22%23000%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22/%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%2217.3%22%20r%3D%221.1%22%20fill%3D%22%23000%22/%3E%3C/svg%3E');mask-image:url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20d%3D%22M12%203l10%2018H2L12%203z%22%20stroke%3D%22%23000%22%20stroke-width%3D%221.8%22%20fill%3D%22none%22%20stroke-linejoin%3D%22round%22/%3E%3Cpath%20d%3D%22M12%2010v4%22%20stroke%3D%22%23000%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22/%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%2217.3%22%20r%3D%221.1%22%20fill%3D%22%23000%22/%3E%3C/svg%3E');}
+.icon-circle-exclamation{-webkit-mask-image:url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2024%2024%22%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%2212%22%20r%3D%229.2%22%20stroke%3D%22%23000%22%20stroke-width%3D%221.9%22%20fill%3D%22none%22/%3E%3Cpath%20d%3D%22M12%207v6%22%20stroke%3D%22%23000%22%20stroke-width%3D%222.1%22%20stroke-linecap%3D%22round%22/%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%2216.6%22%20r%3D%221.1%22%20fill%3D%22%23000%22/%3E%3C/svg%3E');mask-image:url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2024%2024%22%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%2212%22%20r%3D%229.2%22%20stroke%3D%22%23000%22%20stroke-width%3D%221.9%22%20fill%3D%22none%22/%3E%3Cpath%20d%3D%22M12%207v6%22%20stroke%3D%22%23000%22%20stroke-width%3D%222.1%22%20stroke-linecap%3D%22round%22/%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%2216.6%22%20r%3D%221.1%22%20fill%3D%22%23000%22/%3E%3C/svg%3E');}
+.icon-circle-check{-webkit-mask-image:url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2024%2024%22%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%2212%22%20r%3D%229.2%22%20stroke%3D%22%23000%22%20stroke-width%3D%221.9%22%20fill%3D%22none%22/%3E%3Cpath%20d%3D%22M7.5%2012.3l3%203%206-6.4%22%20stroke%3D%22%23000%22%20stroke-width%3D%222%22%20fill%3D%22none%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3C/svg%3E');mask-image:url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2024%2024%22%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%2212%22%20r%3D%229.2%22%20stroke%3D%22%23000%22%20stroke-width%3D%221.9%22%20fill%3D%22none%22/%3E%3Cpath%20d%3D%22M7.5%2012.3l3%203%206-6.4%22%20stroke%3D%22%23000%22%20stroke-width%3D%222%22%20fill%3D%22none%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3C/svg%3E');}
+.icon-circle-info{-webkit-mask-image:url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2024%2024%22%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%2212%22%20r%3D%229.2%22%20stroke%3D%22%23000%22%20stroke-width%3D%221.9%22%20fill%3D%22none%22/%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%227.6%22%20r%3D%221.05%22%20fill%3D%22%23000%22/%3E%3Cpath%20d%3D%22M12%2011v6%22%20stroke%3D%22%23000%22%20stroke-width%3D%222.1%22%20stroke-linecap%3D%22round%22/%3E%3C/svg%3E');mask-image:url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2024%2024%22%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%2212%22%20r%3D%229.2%22%20stroke%3D%22%23000%22%20stroke-width%3D%221.9%22%20fill%3D%22none%22/%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%227.6%22%20r%3D%221.05%22%20fill%3D%22%23000%22/%3E%3Cpath%20d%3D%22M12%2011v6%22%20stroke%3D%22%23000%22%20stroke-width%3D%222.1%22%20stroke-linecap%3D%22round%22/%3E%3C/svg%3E');}
+.icon-bell{-webkit-mask-image:url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20d%3D%22M6%2017h12l-1.6-2.4V10a4.4%204.4%200%2000-8.8%200v4.6L6%2017z%22%20stroke%3D%22%23000%22%20stroke-width%3D%221.8%22%20fill%3D%22none%22%20stroke-linejoin%3D%22round%22/%3E%3Cpath%20d%3D%22M10%2019.5a2%202%200%20004%200%22%20stroke%3D%22%23000%22%20stroke-width%3D%221.8%22%20fill%3D%22none%22%20stroke-linecap%3D%22round%22/%3E%3C/svg%3E');mask-image:url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20d%3D%22M6%2017h12l-1.6-2.4V10a4.4%204.4%200%2000-8.8%200v4.6L6%2017z%22%20stroke%3D%22%23000%22%20stroke-width%3D%221.8%22%20fill%3D%22none%22%20stroke-linejoin%3D%22round%22/%3E%3Cpath%20d%3D%22M10%2019.5a2%202%200%20004%200%22%20stroke%3D%22%23000%22%20stroke-width%3D%221.8%22%20fill%3D%22none%22%20stroke-linecap%3D%22round%22/%3E%3C/svg%3E');}
+.icon-boxes-stacked{-webkit-mask-image:url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2024%2024%22%3E%3Crect%20x%3D%223.5%22%20y%3D%2212.5%22%20width%3D%227%22%20height%3D%227%22%20rx%3D%220.6%22%20stroke%3D%22%23000%22%20stroke-width%3D%221.7%22%20fill%3D%22none%22/%3E%3Crect%20x%3D%2213.5%22%20y%3D%2212.5%22%20width%3D%227%22%20height%3D%227%22%20rx%3D%220.6%22%20stroke%3D%22%23000%22%20stroke-width%3D%221.7%22%20fill%3D%22none%22/%3E%3Crect%20x%3D%228.5%22%20y%3D%223.5%22%20width%3D%227%22%20height%3D%227%22%20rx%3D%220.6%22%20stroke%3D%22%23000%22%20stroke-width%3D%221.7%22%20fill%3D%22none%22/%3E%3C/svg%3E');mask-image:url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2024%2024%22%3E%3Crect%20x%3D%223.5%22%20y%3D%2212.5%22%20width%3D%227%22%20height%3D%227%22%20rx%3D%220.6%22%20stroke%3D%22%23000%22%20stroke-width%3D%221.7%22%20fill%3D%22none%22/%3E%3Crect%20x%3D%2213.5%22%20y%3D%2212.5%22%20width%3D%227%22%20height%3D%227%22%20rx%3D%220.6%22%20stroke%3D%22%23000%22%20stroke-width%3D%221.7%22%20fill%3D%22none%22/%3E%3Crect%20x%3D%228.5%22%20y%3D%223.5%22%20width%3D%227%22%20height%3D%227%22%20rx%3D%220.6%22%20stroke%3D%22%23000%22%20stroke-width%3D%221.7%22%20fill%3D%22none%22/%3E%3C/svg%3E');}
+.icon-chart-column{-webkit-mask-image:url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20d%3D%22M4%2020V10M11%2020V4M18%2020v-7%22%20stroke%3D%22%23000%22%20stroke-width%3D%222.3%22%20stroke-linecap%3D%22round%22/%3E%3Cpath%20d%3D%22M2.5%2020.5h19%22%20stroke%3D%22%23000%22%20stroke-width%3D%221.6%22%20stroke-linecap%3D%22round%22/%3E%3C/svg%3E');mask-image:url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20d%3D%22M4%2020V10M11%2020V4M18%2020v-7%22%20stroke%3D%22%23000%22%20stroke-width%3D%222.3%22%20stroke-linecap%3D%22round%22/%3E%3Cpath%20d%3D%22M2.5%2020.5h19%22%20stroke%3D%22%23000%22%20stroke-width%3D%221.6%22%20stroke-linecap%3D%22round%22/%3E%3C/svg%3E');}
+.icon-gauge-high{-webkit-mask-image:url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20d%3D%22M4%2017a8%208%200%201116%200%22%20stroke%3D%22%23000%22%20stroke-width%3D%221.8%22%20fill%3D%22none%22%20stroke-linecap%3D%22round%22/%3E%3Cpath%20d%3D%22M12%2017l4.5-6.5%22%20stroke%3D%22%23000%22%20stroke-width%3D%221.9%22%20stroke-linecap%3D%22round%22/%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%2217%22%20r%3D%221.2%22%20fill%3D%22%23000%22/%3E%3C/svg%3E');mask-image:url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20d%3D%22M4%2017a8%208%200%201116%200%22%20stroke%3D%22%23000%22%20stroke-width%3D%221.8%22%20fill%3D%22none%22%20stroke-linecap%3D%22round%22/%3E%3Cpath%20d%3D%22M12%2017l4.5-6.5%22%20stroke%3D%22%23000%22%20stroke-width%3D%221.9%22%20stroke-linecap%3D%22round%22/%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%2217%22%20r%3D%221.2%22%20fill%3D%22%23000%22/%3E%3C/svg%3E');}
+.icon-people-arrows{-webkit-mask-image:url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20d%3D%22M7%204a2%202%200%20100%204%202%202%200%20000-4z%22%20stroke%3D%22%23000%22%20stroke-width%3D%221.5%22%20fill%3D%22none%22/%3E%3Cpath%20d%3D%22M17%204a2%202%200%20100%204%202%202%200%20000-4z%22%20stroke%3D%22%23000%22%20stroke-width%3D%221.5%22%20fill%3D%22none%22/%3E%3Cpath%20d%3D%22M4%2020v-3a3%203%200%20013-3h1M20%2020v-3a3%203%200%2000-3-3h-1%22%20stroke%3D%22%23000%22%20stroke-width%3D%221.5%22%20fill%3D%22none%22%20stroke-linecap%3D%22round%22/%3E%3Cpath%20d%3D%22M9%2012h6M9%2012l1.6-1.6M9%2012l1.6%201.6M15%2012l-1.6-1.6M15%2012l-1.6%201.6%22%20stroke%3D%22%23000%22%20stroke-width%3D%221.6%22%20fill%3D%22none%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3C/svg%3E');mask-image:url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20d%3D%22M7%204a2%202%200%20100%204%202%202%200%20000-4z%22%20stroke%3D%22%23000%22%20stroke-width%3D%221.5%22%20fill%3D%22none%22/%3E%3Cpath%20d%3D%22M17%204a2%202%200%20100%204%202%202%200%20000-4z%22%20stroke%3D%22%23000%22%20stroke-width%3D%221.5%22%20fill%3D%22none%22/%3E%3Cpath%20d%3D%22M4%2020v-3a3%203%200%20013-3h1M20%2020v-3a3%203%200%2000-3-3h-1%22%20stroke%3D%22%23000%22%20stroke-width%3D%221.5%22%20fill%3D%22none%22%20stroke-linecap%3D%22round%22/%3E%3Cpath%20d%3D%22M9%2012h6M9%2012l1.6-1.6M9%2012l1.6%201.6M15%2012l-1.6-1.6M15%2012l-1.6%201.6%22%20stroke%3D%22%23000%22%20stroke-width%3D%221.6%22%20fill%3D%22none%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3C/svg%3E');}
+.icon-screwdriver-wrench{-webkit-mask-image:url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20d%3D%22M14%207a4%204%200%20105.4%205.4L16%209l1.4-3.4L21%204l-2%203.6-3.4%201.4L14%207z%22%20stroke%3D%22%23000%22%20stroke-width%3D%221.5%22%20fill%3D%22none%22%20stroke-linejoin%3D%22round%22/%3E%3Cpath%20d%3D%22M13%2011L4%2020%22%20stroke%3D%22%23000%22%20stroke-width%3D%222.1%22%20stroke-linecap%3D%22round%22/%3E%3Cpath%20d%3D%22M3%204l3%201%201%203-1.5%201.5L3%208%202%205z%22%20stroke%3D%22%23000%22%20stroke-width%3D%221.4%22%20fill%3D%22none%22%20stroke-linejoin%3D%22round%22/%3E%3Cpath%20d%3D%22M6%209l3%203%22%20stroke%3D%22%23000%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22/%3E%3C/svg%3E');mask-image:url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20d%3D%22M14%207a4%204%200%20105.4%205.4L16%209l1.4-3.4L21%204l-2%203.6-3.4%201.4L14%207z%22%20stroke%3D%22%23000%22%20stroke-width%3D%221.5%22%20fill%3D%22none%22%20stroke-linejoin%3D%22round%22/%3E%3Cpath%20d%3D%22M13%2011L4%2020%22%20stroke%3D%22%23000%22%20stroke-width%3D%222.1%22%20stroke-linecap%3D%22round%22/%3E%3Cpath%20d%3D%22M3%204l3%201%201%203-1.5%201.5L3%208%202%205z%22%20stroke%3D%22%23000%22%20stroke-width%3D%221.4%22%20fill%3D%22none%22%20stroke-linejoin%3D%22round%22/%3E%3Cpath%20d%3D%22M6%209l3%203%22%20stroke%3D%22%23000%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22/%3E%3C/svg%3E');}
+.icon-clipboard-list{-webkit-mask-image:url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2024%2024%22%3E%3Crect%20x%3D%225%22%20y%3D%224.5%22%20width%3D%2214%22%20height%3D%2217%22%20rx%3D%221.3%22%20stroke%3D%22%23000%22%20stroke-width%3D%221.7%22%20fill%3D%22none%22/%3E%3Crect%20x%3D%229%22%20y%3D%222.5%22%20width%3D%226%22%20height%3D%223.4%22%20rx%3D%220.8%22%20stroke%3D%22%23000%22%20stroke-width%3D%221.5%22%20fill%3D%22none%22/%3E%3Cpath%20d%3D%22M8.5%2011h7M8.5%2014.5h7M8.5%2018h4.5%22%20stroke%3D%22%23000%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22/%3E%3C/svg%3E');mask-image:url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2024%2024%22%3E%3Crect%20x%3D%225%22%20y%3D%224.5%22%20width%3D%2214%22%20height%3D%2217%22%20rx%3D%221.3%22%20stroke%3D%22%23000%22%20stroke-width%3D%221.7%22%20fill%3D%22none%22/%3E%3Crect%20x%3D%229%22%20y%3D%222.5%22%20width%3D%226%22%20height%3D%223.4%22%20rx%3D%220.8%22%20stroke%3D%22%23000%22%20stroke-width%3D%221.5%22%20fill%3D%22none%22/%3E%3Cpath%20d%3D%22M8.5%2011h7M8.5%2014.5h7M8.5%2018h4.5%22%20stroke%3D%22%23000%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22/%3E%3C/svg%3E');}
+.icon-file-lines{-webkit-mask-image:url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20d%3D%22M7%203h7l4%204v14H7z%22%20stroke%3D%22%23000%22%20stroke-width%3D%221.6%22%20fill%3D%22none%22%20stroke-linejoin%3D%22round%22/%3E%3Cpath%20d%3D%22M14%203v4h4%22%20stroke%3D%22%23000%22%20stroke-width%3D%221.5%22%20fill%3D%22none%22%20stroke-linejoin%3D%22round%22/%3E%3Cpath%20d%3D%22M9.3%2012.5h6M9.3%2015.7h6M9.3%2018.4h3.5%22%20stroke%3D%22%23000%22%20stroke-width%3D%221.4%22%20stroke-linecap%3D%22round%22/%3E%3C/svg%3E');mask-image:url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20d%3D%22M7%203h7l4%204v14H7z%22%20stroke%3D%22%23000%22%20stroke-width%3D%221.6%22%20fill%3D%22none%22%20stroke-linejoin%3D%22round%22/%3E%3Cpath%20d%3D%22M14%203v4h4%22%20stroke%3D%22%23000%22%20stroke-width%3D%221.5%22%20fill%3D%22none%22%20stroke-linejoin%3D%22round%22/%3E%3Cpath%20d%3D%22M9.3%2012.5h6M9.3%2015.7h6M9.3%2018.4h3.5%22%20stroke%3D%22%23000%22%20stroke-width%3D%221.4%22%20stroke-linecap%3D%22round%22/%3E%3C/svg%3E');}
+.icon-shield-halved{-webkit-mask-image:url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20d%3D%22M12%202.5l8%203v6c0%205.2-3.4%208.7-8%2010-4.6-1.3-8-4.8-8-10v-6l8-3z%22%20stroke%3D%22%23000%22%20stroke-width%3D%221.7%22%20fill%3D%22none%22%20stroke-linejoin%3D%22round%22/%3E%3Cpath%20d%3D%22M12%202.5v19%22%20stroke%3D%22%23000%22%20stroke-width%3D%221.5%22/%3E%3Cpath%20d%3D%22M12%202.5l8%203v6c0%205.2-3.4%208.7-8%2010z%22%20fill%3D%22%23000%22%20opacity%3D%220.12%22/%3E%3C/svg%3E');mask-image:url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20d%3D%22M12%202.5l8%203v6c0%205.2-3.4%208.7-8%2010-4.6-1.3-8-4.8-8-10v-6l8-3z%22%20stroke%3D%22%23000%22%20stroke-width%3D%221.7%22%20fill%3D%22none%22%20stroke-linejoin%3D%22round%22/%3E%3Cpath%20d%3D%22M12%202.5v19%22%20stroke%3D%22%23000%22%20stroke-width%3D%221.5%22/%3E%3Cpath%20d%3D%22M12%202.5l8%203v6c0%205.2-3.4%208.7-8%2010z%22%20fill%3D%22%23000%22%20opacity%3D%220.12%22/%3E%3C/svg%3E');}
+.icon-lock{-webkit-mask-image:url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2024%2024%22%3E%3Crect%20x%3D%225%22%20y%3D%2210.5%22%20width%3D%2214%22%20height%3D%2210%22%20rx%3D%221.4%22%20stroke%3D%22%23000%22%20stroke-width%3D%221.8%22%20fill%3D%22none%22/%3E%3Cpath%20d%3D%22M8%2010.5V7a4%204%200%20018%200v3.5%22%20stroke%3D%22%23000%22%20stroke-width%3D%221.8%22%20fill%3D%22none%22/%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%2215%22%20r%3D%221.3%22%20fill%3D%22%23000%22/%3E%3Cpath%20d%3D%22M12%2016.3v2%22%20stroke%3D%22%23000%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22/%3E%3C/svg%3E');mask-image:url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2024%2024%22%3E%3Crect%20x%3D%225%22%20y%3D%2210.5%22%20width%3D%2214%22%20height%3D%2210%22%20rx%3D%221.4%22%20stroke%3D%22%23000%22%20stroke-width%3D%221.8%22%20fill%3D%22none%22/%3E%3Cpath%20d%3D%22M8%2010.5V7a4%204%200%20018%200v3.5%22%20stroke%3D%22%23000%22%20stroke-width%3D%221.8%22%20fill%3D%22none%22/%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%2215%22%20r%3D%221.3%22%20fill%3D%22%23000%22/%3E%3Cpath%20d%3D%22M12%2016.3v2%22%20stroke%3D%22%23000%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22/%3E%3C/svg%3E');}
+.icon-key{-webkit-mask-image:url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2024%2024%22%3E%3Ccircle%20cx%3D%227.5%22%20cy%3D%2214.5%22%20r%3D%224%22%20stroke%3D%22%23000%22%20stroke-width%3D%221.8%22%20fill%3D%22none%22/%3E%3Cpath%20d%3D%22M10.5%2011.5L20%202M17%205l2.5%202.5M14.5%207.5L16.5%209.5%22%20stroke%3D%22%23000%22%20stroke-width%3D%221.8%22%20fill%3D%22none%22%20stroke-linecap%3D%22round%22/%3E%3C/svg%3E');mask-image:url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2024%2024%22%3E%3Ccircle%20cx%3D%227.5%22%20cy%3D%2214.5%22%20r%3D%224%22%20stroke%3D%22%23000%22%20stroke-width%3D%221.8%22%20fill%3D%22none%22/%3E%3Cpath%20d%3D%22M10.5%2011.5L20%202M17%205l2.5%202.5M14.5%207.5L16.5%209.5%22%20stroke%3D%22%23000%22%20stroke-width%3D%221.8%22%20fill%3D%22none%22%20stroke-linecap%3D%22round%22/%3E%3C/svg%3E');}
+.icon-right-left{-webkit-mask-image:url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20d%3D%22M6%207h13l-3.5-3.5M18%2017H5l3.5%203.5%22%20stroke%3D%22%23000%22%20stroke-width%3D%222%22%20fill%3D%22none%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3C/svg%3E');mask-image:url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20d%3D%22M6%207h13l-3.5-3.5M18%2017H5l3.5%203.5%22%20stroke%3D%22%23000%22%20stroke-width%3D%222%22%20fill%3D%22none%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3C/svg%3E');}
+.icon-rotate-left{-webkit-mask-image:url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20d%3D%22M4%204v5h5%22%20stroke%3D%22%23000%22%20stroke-width%3D%221.8%22%20fill%3D%22none%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3Cpath%20d%3D%22M4.6%2015A8.5%208.5%200%201012%204a8.5%208.5%200%2000-7.4%204.3%22%20stroke%3D%22%23000%22%20stroke-width%3D%221.8%22%20fill%3D%22none%22%20stroke-linecap%3D%22round%22/%3E%3C/svg%3E');mask-image:url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20d%3D%22M4%204v5h5%22%20stroke%3D%22%23000%22%20stroke-width%3D%221.8%22%20fill%3D%22none%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3Cpath%20d%3D%22M4.6%2015A8.5%208.5%200%201012%204a8.5%208.5%200%2000-7.4%204.3%22%20stroke%3D%22%23000%22%20stroke-width%3D%221.8%22%20fill%3D%22none%22%20stroke-linecap%3D%22round%22/%3E%3C/svg%3E');}
+.icon-print{-webkit-mask-image:url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2024%2024%22%3E%3Crect%20x%3D%225%22%20y%3D%228.5%22%20width%3D%2214%22%20height%3D%227.5%22%20rx%3D%221%22%20stroke%3D%22%23000%22%20stroke-width%3D%221.7%22%20fill%3D%22none%22/%3E%3Cpath%20d%3D%22M7%208.5V4h10v4.5%22%20stroke%3D%22%23000%22%20stroke-width%3D%221.7%22%20fill%3D%22none%22%20stroke-linejoin%3D%22round%22/%3E%3Crect%20x%3D%227.5%22%20y%3D%2214%22%20width%3D%229%22%20height%3D%226.5%22%20stroke%3D%22%23000%22%20stroke-width%3D%221.5%22%20fill%3D%22none%22/%3E%3C/svg%3E');mask-image:url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2024%2024%22%3E%3Crect%20x%3D%225%22%20y%3D%228.5%22%20width%3D%2214%22%20height%3D%227.5%22%20rx%3D%221%22%20stroke%3D%22%23000%22%20stroke-width%3D%221.7%22%20fill%3D%22none%22/%3E%3Cpath%20d%3D%22M7%208.5V4h10v4.5%22%20stroke%3D%22%23000%22%20stroke-width%3D%221.7%22%20fill%3D%22none%22%20stroke-linejoin%3D%22round%22/%3E%3Crect%20x%3D%227.5%22%20y%3D%2214%22%20width%3D%229%22%20height%3D%226.5%22%20stroke%3D%22%23000%22%20stroke-width%3D%221.5%22%20fill%3D%22none%22/%3E%3C/svg%3E');}
+.icon-download{-webkit-mask-image:url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20d%3D%22M12%203v12M7%2010l5%205%205-5%22%20stroke%3D%22%23000%22%20stroke-width%3D%222.1%22%20fill%3D%22none%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3Cpath%20d%3D%22M4%2019.5h16%22%20stroke%3D%22%23000%22%20stroke-width%3D%221.9%22%20stroke-linecap%3D%22round%22/%3E%3C/svg%3E');mask-image:url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20d%3D%22M12%203v12M7%2010l5%205%205-5%22%20stroke%3D%22%23000%22%20stroke-width%3D%222.1%22%20fill%3D%22none%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3Cpath%20d%3D%22M4%2019.5h16%22%20stroke%3D%22%23000%22%20stroke-width%3D%221.9%22%20stroke-linecap%3D%22round%22/%3E%3C/svg%3E');}
+.icon-arrow-down-to-bracket{-webkit-mask-image:url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20d%3D%22M12%203v11M7.5%209.5L12%2014l4.5-4.5%22%20stroke%3D%22%23000%22%20stroke-width%3D%222.1%22%20fill%3D%22none%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3Cpath%20d%3D%22M4.5%2018h15%22%20stroke%3D%22%23000%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22/%3E%3C/svg%3E');mask-image:url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20d%3D%22M12%203v11M7.5%209.5L12%2014l4.5-4.5%22%20stroke%3D%22%23000%22%20stroke-width%3D%222.1%22%20fill%3D%22none%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3Cpath%20d%3D%22M4.5%2018h15%22%20stroke%3D%22%23000%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22/%3E%3C/svg%3E');}
+.icon-arrow-up-from-bracket{-webkit-mask-image:url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20d%3D%22M12%2021V10M7.5%2014.5L12%2010l4.5%204.5%22%20stroke%3D%22%23000%22%20stroke-width%3D%222.1%22%20fill%3D%22none%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3Cpath%20d%3D%22M4.5%206h15%22%20stroke%3D%22%23000%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22/%3E%3C/svg%3E');mask-image:url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20d%3D%22M12%2021V10M7.5%2014.5L12%2010l4.5%204.5%22%20stroke%3D%22%23000%22%20stroke-width%3D%222.1%22%20fill%3D%22none%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3Cpath%20d%3D%22M4.5%206h15%22%20stroke%3D%22%23000%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22/%3E%3C/svg%3E');}
+.icon-user{-webkit-mask-image:url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2024%2024%22%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%228%22%20r%3D%223.6%22%20stroke%3D%22%23000%22%20stroke-width%3D%221.8%22%20fill%3D%22none%22/%3E%3Cpath%20d%3D%22M4.5%2020c1-4%204-6%207.5-6s6.5%202%207.5%206%22%20stroke%3D%22%23000%22%20stroke-width%3D%221.8%22%20fill%3D%22none%22%20stroke-linecap%3D%22round%22/%3E%3C/svg%3E');mask-image:url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2024%2024%22%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%228%22%20r%3D%223.6%22%20stroke%3D%22%23000%22%20stroke-width%3D%221.8%22%20fill%3D%22none%22/%3E%3Cpath%20d%3D%22M4.5%2020c1-4%204-6%207.5-6s6.5%202%207.5%206%22%20stroke%3D%22%23000%22%20stroke-width%3D%221.8%22%20fill%3D%22none%22%20stroke-linecap%3D%22round%22/%3E%3C/svg%3E');}
+.icon-users{-webkit-mask-image:url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2024%2024%22%3E%3Ccircle%20cx%3D%229%22%20cy%3D%228%22%20r%3D%223.2%22%20stroke%3D%22%23000%22%20stroke-width%3D%221.7%22%20fill%3D%22none%22/%3E%3Cpath%20d%3D%22M3%2019c.8-3.4%203-5.2%206-5.2s5.2%201.8%206%205.2%22%20stroke%3D%22%23000%22%20stroke-width%3D%221.7%22%20fill%3D%22none%22%20stroke-linecap%3D%22round%22/%3E%3Ccircle%20cx%3D%2217%22%20cy%3D%228.5%22%20r%3D%222.4%22%20stroke%3D%22%23000%22%20stroke-width%3D%221.5%22%20fill%3D%22none%22/%3E%3Cpath%20d%3D%22M15.5%2013.5c2.6.2%204%201.8%204.6%204.3%22%20stroke%3D%22%23000%22%20stroke-width%3D%221.5%22%20fill%3D%22none%22%20stroke-linecap%3D%22round%22/%3E%3C/svg%3E');mask-image:url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2024%2024%22%3E%3Ccircle%20cx%3D%229%22%20cy%3D%228%22%20r%3D%223.2%22%20stroke%3D%22%23000%22%20stroke-width%3D%221.7%22%20fill%3D%22none%22/%3E%3Cpath%20d%3D%22M3%2019c.8-3.4%203-5.2%206-5.2s5.2%201.8%206%205.2%22%20stroke%3D%22%23000%22%20stroke-width%3D%221.7%22%20fill%3D%22none%22%20stroke-linecap%3D%22round%22/%3E%3Ccircle%20cx%3D%2217%22%20cy%3D%228.5%22%20r%3D%222.4%22%20stroke%3D%22%23000%22%20stroke-width%3D%221.5%22%20fill%3D%22none%22/%3E%3Cpath%20d%3D%22M15.5%2013.5c2.6.2%204%201.8%204.6%204.3%22%20stroke%3D%22%23000%22%20stroke-width%3D%221.5%22%20fill%3D%22none%22%20stroke-linecap%3D%22round%22/%3E%3C/svg%3E');}
+
+:root{
+  --ink:#1b2430; --ink-soft:#4b5768; --line:#dfe4ea; --line-soft:#eef1f4;
+  --paper:#ffffff; --bg:#f4f6f8;
+  --brand:#1f5f5b; --brand-dark:#153f3c; --brand-light:#e5f1f0;
+  --danger:#b3261e; --danger-light:#fbe9e8;
+  --warn:#8a5a00; --warn-light:#fff3da;
+  --ok:#1b7a3d; --ok-light:#e6f5ea;
+  --radius:10px; --shadow:0 1px 3px rgba(20,30,40,.08);
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Segoe UI',Tahoma,Vazirmatn,sans-serif;background:var(--bg);color:var(--ink);font-size:15px;}
+.container{max-width:1100px;margin:0 auto;padding:0 20px;}
+
+header{background:var(--brand-dark);color:#fff;padding:1rem 0;box-shadow:var(--shadow);border-bottom:3px solid #b4562a;}
+.header-row{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;}
+.header-row h1{font-size:1.15rem;display:flex;align-items:center;gap:10px;}
+.logo-badge{width:34px;height:34px;border-radius:8px;background:#b4562a;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.logo-badge .icon{color:#fff;width:1.1em;height:1.1em;}
+.user-badge{display:flex;align-items:center;gap:10px;font-size:.85rem;}
+.role-tag{background:var(--brand);padding:.25rem .6rem;border-radius:20px;font-size:.75rem;}
+button{background:var(--brand);color:#fff;border:none;padding:.55rem 1.1rem;border-radius:7px;cursor:pointer;font-size:.85rem;font-family:inherit;}
+button:hover{background:var(--brand-dark);}
+button.danger{background:var(--danger);} button.danger:hover{background:#8f1f19;}
+button.ghost{background:transparent;border:1px solid rgba(255,255,255,.4);color:#fff;}
+button.outline{background:transparent;color:var(--brand);border:1px solid var(--brand);}
+
+main{padding:1.5rem 0 3rem;}
+.card{background:var(--paper);border-radius:var(--radius);box-shadow:var(--shadow);padding:1.3rem;margin-bottom:1.2rem;}
+.card h2{font-size:1.05rem;margin-bottom:1rem;border-bottom:1px solid var(--line);padding-bottom:.6rem;}
+
+.stat-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1rem;margin-bottom:1.2rem;}
+.stat-card{background:var(--paper);border-radius:var(--radius);box-shadow:var(--shadow);padding:1rem 1.2rem;border-right:4px solid var(--brand);}
+.stat-card.warn{border-right-color:var(--warn);} .stat-card.danger{border-right-color:var(--danger);}
+.stat-label{color:var(--ink-soft);font-size:.78rem;}
+.stat-value{font-size:1.7rem;font-weight:700;font-family:monospace;}
+
+.form-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:.8rem;margin-bottom:.8rem;}
+.form-group label{display:block;margin-bottom:.3rem;font-size:.82rem;font-weight:600;}
+input,select{width:100%;padding:.55rem .65rem;border:1px solid var(--line);border-radius:7px;font-size:.87rem;font-family:inherit;}
+input:focus,select:focus{outline:none;border-color:var(--brand);}
+
+table{width:100%;border-collapse:collapse;font-size:.85rem;}
+th,td{padding:.55rem .7rem;text-align:right;border-bottom:1px solid var(--line-soft);}
+th{background:var(--line-soft);font-size:.76rem;}
+.badge{display:inline-block;padding:.2rem .5rem;border-radius:20px;font-size:.72rem;font-weight:600;}
+.badge-ok{background:var(--ok-light);color:var(--ok);}
+.badge-warn{background:var(--warn-light);color:var(--warn);}
+.badge-danger{background:var(--danger-light);color:var(--danger);}
+.badge-neutral{background:var(--line-soft);color:var(--ink-soft);}
+.badge-purple{background:#efe7f8;color:#5b3a8e;}
+button.purple{background:#5b3a8e;} button.purple:hover{background:#432c6b;}
+
+.hidden{display:none !important;}
+.alert{padding:.7rem 1rem;border-radius:8px;margin-bottom:.9rem;font-size:.85rem;}
+.alert-danger{background:var(--danger-light);color:var(--danger);}
+.alert-ok{background:var(--ok-light);color:var(--ok);}
+.alert-warn{background:var(--warn-light);color:var(--warn);}
+
+/* Login screen */
+#login-screen{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:1rem;}
+.login-box{background:var(--paper);border-radius:var(--radius);box-shadow:0 12px 28px rgba(20,30,40,.14);padding:2rem;max-width:380px;width:100%;}
+.login-box h1{text-align:center;margin-bottom:1.5rem;color:var(--brand-dark);font-size:1.2rem;}
+.login-box .form-group{margin-bottom:1rem;}
+.login-box button{width:100%;padding:.7rem;font-size:.95rem;}
+
+nav.tabs{display:flex;gap:.3rem;margin-bottom:1.2rem;flex-wrap:wrap;}
+nav.tabs button{background:var(--paper);color:var(--ink-soft);border:1px solid var(--line);display:inline-flex;align-items:center;gap:6px;}
+nav.tabs button.active{background:var(--brand);color:#fff;border-color:var(--brand);}
+
+/* رسید چاپی رسمی — پیش‌نمایش روی صفحه، و در حالت چاپ فقط همین ناحیه
+   نمایش داده می‌شود (نه هدر/منو/بقیه کارت‌ها) */
+.print-preview{display:none;border:1px solid var(--line);border-radius:10px;padding:1.4rem;margin-top:1rem;background:#fff;max-width:620px;}
+.print-preview.show{display:block;}
+.print-preview .doc-head{text-align:center;margin-bottom:1rem;padding-bottom:.8rem;border-bottom:2px solid var(--ink);}
+.print-preview .doc-head h3{font-size:1.05rem;}
+.print-preview .doc-head .doc-no{font-family:monospace;color:var(--brand);font-weight:700;margin-top:.3rem;}
+.print-preview table{width:100%;margin-top:.6rem;}
+.print-preview .sign-row{display:flex;justify-content:space-between;margin-top:2.2rem;font-size:.85rem;}
+.print-preview .sign-row div{text-align:center;flex:1;}
+.print-preview .sign-row .line{border-top:1px solid var(--ink);margin-top:2.2rem;padding-top:.3rem;}
+.print-preview .print-actions{margin-top:1.1rem;}
+
+#print-area{display:none;}
+@media print{
+  body *{visibility:hidden;}
+  #print-area, #print-area *{visibility:visible;}
+  #print-area{display:block !important;position:absolute;top:0;right:0;left:0;padding:1.5rem;}
+}
+button{display:inline-flex;align-items:center;gap:7px;}
+.card h2{display:flex;align-items:center;gap:9px;}
+.card h2 .icon{color:var(--brand);}
+</style>
+</head>
+<body>
+
+<div id="login-screen">
+  <div class="login-box">
+    <h1>ورود به سیستم انبارداری</h1>
+    <div id="login-error"></div>
+    <div class="form-group">
+      <label for="login-username">نام کاربری</label>
+      <input type="text" id="login-username" autocomplete="username">
+    </div>
+    <div class="form-group">
+      <label for="login-password">رمز عبور</label>
+      <input type="password" id="login-password" autocomplete="current-password">
+    </div>
+    <button id="login-btn"><span class="icon icon-right-left"></span>ورود</button>
+  </div>
+</div>
+
+<div id="app-screen" class="hidden">
+  <header>
+    <div class="container header-row">
+      <h1><span class="logo-badge"><span class="icon icon-boxes-stacked"></span></span>سیستم انبارداری — نسخه تحت شبکه</h1>
+      <div class="user-badge">
+        <span id="user-fullname"></span>
+        <span class="role-tag" id="user-role"></span>
+        <button class="ghost" id="logout-btn">خروج</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <div id="must-change-password-alert" class="alert alert-warn hidden">
+      <strong>تغییر رمز عبور الزامی است.</strong> این رمز پیش‌فرض/موقت است و تا زمانی که آن را
+      از بخش «حساب کاربری» عوض نکنید، سایر بخش‌های سامانه در دسترس نخواهد بود.
+    </div>
+
+    <nav class="tabs">
+      <button data-tab="dashboard-tab" class="active"><span class="icon icon-gauge-high"></span> داشبورد</button>
+      <button data-tab="products-tab"><span class="icon icon-boxes-stacked"></span> کالاها</button>
+      <button data-tab="stockin-tab" id="stockin-tab-btn"><span class="icon icon-arrow-down-to-bracket"></span> رسید ورود</button>
+      <button data-tab="stockout-tab" id="stockout-tab-btn"><span class="icon icon-arrow-up-from-bracket"></span> حواله خروج</button>
+      <button data-tab="returns-tab" id="returns-tab-btn"><span class="icon icon-rotate-left"></span> مرجوعی</button>
+      <button data-tab="custody-tab" id="custody-tab-btn"><span class="icon icon-people-arrows"></span> امانت ابزار</button>
+      <button data-tab="repair-tab" id="repair-tab-btn"><span class="icon icon-screwdriver-wrench"></span> تعمیرگاه</button>
+      <button data-tab="requests-tab" id="requests-tab-btn"><span class="icon icon-clipboard-list"></span> درخواست‌ها</button>
+      <button data-tab="documents-tab" id="documents-tab-btn"><span class="icon icon-file-lines"></span> مدیریت اسناد</button>
+      <button data-tab="reports-tab" id="reports-tab-btn"><span class="icon icon-chart-column"></span> گزارش‌ها</button>
+      <button data-tab="users-tab" id="users-tab-btn"><span class="icon icon-users"></span> کاربران</button>
+      <button data-tab="audit-tab" id="audit-tab-btn"><span class="icon icon-shield-halved"></span> لاگ حسابرسی</button>
+      <button data-tab="account-tab"><span class="icon icon-key"></span> حساب کاربری</button>
+    </nav>
+
+    <datalist id="products-datalist"></datalist>
+    <datalist id="tools-datalist"></datalist>
+
+    <section id="dashboard-tab">
+      <div class="stat-cards">
+        <div class="stat-card"><div class="stat-label">تعداد اقلام</div><div class="stat-value" id="stat-total-products">-</div></div>
+        <div class="stat-card warn"><div class="stat-label">آستانه هشدار</div><div class="stat-value" id="stat-warn">-</div></div>
+        <div class="stat-card danger"><div class="stat-label">موجودی بحرانی</div><div class="stat-value" id="stat-critical">-</div></div>
+        <div class="stat-card"><div class="stat-label">تعداد کل اسناد</div><div class="stat-value" id="stat-transactions">-</div></div>
+        <div class="stat-card"><div class="stat-label">ابزار در گردش</div><div class="stat-value" id="stat-custody-open">-</div></div>
+        <div class="stat-card warn"><div class="stat-label">در حال تعمیر</div><div class="stat-value" id="stat-repair-open">-</div></div>
+      </div>
+      <div class="card">
+        <h2><span class="icon icon-right-left"></span>آخرین اسناد</h2>
+        <table><thead><tr><th>شماره سند</th><th>تاریخ</th><th>نوع</th><th>کالا</th><th>تعداد</th><th>طرف حساب</th></tr></thead>
+        <tbody id="recent-tx-body"></tbody></table>
+      </div>
+    </section>
+
+    <section id="products-tab" class="hidden">
+      <div class="card" id="product-form-card">
+        <h2><span class="icon icon-plus"></span>افزودن کالای جدید</h2>
+        <div id="product-form-error"></div>
+        <div class="form-row">
+          <div class="form-group"><label>کد کالا</label><input id="pf-code"></div>
+          <div class="form-group"><label>نام کالا</label><input id="pf-name"></div>
+          <div class="form-group"><label>نوع کالا</label>
+            <select id="pf-type"><option value="مصرفی">مصرفی</option><option value="قابل‌برگشت">قابل‌برگشت</option></select>
+          </div>
+          <div class="form-group"><label>واحد</label><input id="pf-unit" placeholder="عدد / کیلوگرم / ..."></div>
+          <div class="form-group"><label>حداقل موجودی</label><input id="pf-min-stock" type="number" min="0"></div>
+          <div class="form-group"><label>موجودی اولیه</label><input id="pf-opening-stock" type="number" min="0" value="0"></div>
+          <div class="form-group"><label>تاریخ موجودی اولیه</label><input type="hidden" id="pf-opening-date" data-jalali="1"></div>
+          <div class="form-group"><label>محل مصرف</label><input id="pf-usage-location"></div>
+          <div class="form-group"><label>محل نگهداری</label><input id="pf-shelf"></div>
+        </div>
+        <button id="pf-submit"><span class="icon icon-check"></span>ذخیره کالا</button>
+      </div>
+      <div class="card">
+        <h2><span class="icon icon-boxes-stacked"></span>فهرست کالاها</h2>
+        <table><thead><tr><th>کد</th><th>نام</th><th>نوع</th><th>واحد</th><th>موجودی دفتری</th><th>قابل تخصیص</th><th>حداقل</th><th>وضعیت</th><th id="products-actions-header">عملیات</th></tr></thead>
+        <tbody id="products-body"></tbody></table>
+      </div>
+    </section>
+
+    <section id="users-tab" class="hidden">
+      <div class="card">
+        <h2><span class="icon icon-plus"></span>افزودن کاربر جدید</h2>
+        <div id="user-form-error"></div>
+        <div class="form-row">
+          <div class="form-group"><label>نام کاربری</label><input id="uf-username"></div>
+          <div class="form-group"><label>رمز عبور موقت</label><input id="uf-password"></div>
+          <div class="form-group"><label>نام کامل</label><input id="uf-fullname"></div>
+          <div class="form-group"><label>نقش</label><select id="uf-role"></select></div>
+        </div>
+        <button id="uf-submit"><span class="icon icon-plus"></span>افزودن کاربر</button>
+      </div>
+      <div class="card">
+        <h2><span class="icon icon-users"></span>فهرست کاربران</h2>
+        <table><thead><tr><th>نام کاربری</th><th>نام کامل</th><th>نقش</th><th>وضعیت</th><th>عملیات</th></tr></thead>
+        <tbody id="users-body"></tbody></table>
+      </div>
+    </section>
+
+    <section id="audit-tab" class="hidden">
+      <div class="card">
+        <h2><span class="icon icon-shield-halved"></span>تطبیق موجودی و نگه‌داری</h2>
+        <p style="font-size:.85rem;color:var(--ink-soft);margin-bottom:.8rem;">
+          موجودی ثبت‌شده‌ی هر کالا باید همیشه دقیقاً برابر مجموع اسناد معتبر آن باشد.
+          این ابزار اختلاف‌ها را پیدا می‌کند (مثلاً داده‌های به‌جامانده از نسخه‌های قبلی) و در صورت تأیید شما اصلاح می‌کند.
+        </p>
+        <button class="outline" id="mt-check-btn"><span class="icon icon-shield-halved"></span>بررسی تطبیق موجودی</button>
+        <button class="outline" id="mt-backup-btn" style="margin-right:.5rem;">پشتیبان‌گیری فوری</button>
+        <div id="maintenance-result" style="margin-top:.8rem;"></div>
+      </div>
+      <div class="card">
+        <h2><span class="icon icon-shield-halved"></span>وضعیت پشتیبان‌گیری</h2>
+        <div id="backup-status">در حال بارگذاری...</div>
+      </div>
+      <div class="card">
+        <h2><span class="icon icon-shield-halved"></span>لاگ حسابرسی (غیرقابل حذف)</h2>
+        <table><thead><tr><th>زمان</th><th>عملیات</th><th>سند/کد</th><th>شرح</th><th>دلیل</th><th>توسط</th></tr></thead>
+        <tbody id="audit-body"></tbody></table>
+      </div>
+    </section>
+
+    <section id="account-tab" class="hidden">
+      <div class="card" style="max-width:420px;">
+        <h2><span class="icon icon-key"></span>تغییر رمز عبور</h2>
+        <div id="pw-change-status"></div>
+        <div class="form-group" style="margin-bottom:.8rem;"><label>رمز فعلی</label><input type="password" id="pw-current"></div>
+        <div class="form-group" style="margin-bottom:.8rem;"><label>رمز جدید</label><input type="password" id="pw-new"></div>
+        <button id="pw-submit"><span class="icon icon-key"></span>تغییر رمز</button>
+      </div>
+    </section>
+
+    <!-- ============ رسید ورود ============ -->
+    <section id="stockin-tab" class="hidden">
+      <div class="card">
+        <h2><span class="icon icon-arrow-down-to-bracket"></span>رسید ورود کالا</h2>
+        <div id="stockin-error"></div>
+        <div class="form-row">
+          <div class="form-group"><label>کالا</label><input id="si-product" list="products-datalist" placeholder="کد یا نام کالا را تایپ کنید..."></div>
+          <div class="form-group"><label>تعداد</label><input id="si-quantity" type="number" min="1"></div>
+          <div class="form-group"><label>تاریخ</label><input type="hidden" id="si-date" data-jalali="1"></div>
+          <div class="form-group"><label>تأمین‌کننده/منبع</label><input id="si-source"></div>
+          <div class="form-group"><label>شماره سفارش خرید</label><input id="si-po"></div>
+        </div>
+        <div class="form-group"><label>توضیحات</label><input id="si-description"></div>
+        <button id="si-submit"><span class="icon icon-check"></span>ثبت رسید ورود</button>
+      </div>
+      <div class="card">
+        <h2><span class="icon icon-file-lines"></span>آخرین رسیدهای ورود</h2>
+        <table><thead><tr><th>شماره سند</th><th>تاریخ</th><th>کالا</th><th>تعداد</th><th>منبع</th></tr></thead>
+        <tbody id="stockin-list-body"></tbody></table>
+      </div>
+    </section>
+
+    <!-- ============ حواله خروج ============ -->
+    <section id="stockout-tab" class="hidden">
+      <div class="card">
+        <h2><span class="icon icon-arrow-up-from-bracket"></span>حواله خروج کالا</h2>
+        <div id="stockout-error"></div>
+        <div class="form-row">
+          <div class="form-group"><label>کالا</label><input id="so-product" list="products-datalist" placeholder="کد یا نام کالا را تایپ کنید..."></div>
+          <div class="form-group"><label>تعداد</label><input id="so-quantity" type="number" min="1"></div>
+          <div class="form-group"><label>تاریخ</label><input type="hidden" id="so-date" data-jalali="1"></div>
+          <div class="form-group"><label>واحد درخواست‌کننده</label>
+            <select id="so-unit">
+              <option value="تولید">تولید</option><option value="تعمیر و نگهداری">تعمیر و نگهداری</option>
+              <option value="پشتیبانی و لجستیک">پشتیبانی و لجستیک</option><option value="آزمایشگاه و کنترل کیفی">آزمایشگاه و کنترل کیفی</option>
+              <option value="ایمنی و بهداشت">ایمنی و بهداشت</option><option value="اداری و منابع انسانی">اداری و منابع انسانی</option>
+              <option value="مدیریت">مدیریت</option><option value="سایر">سایر</option>
+            </select>
+          </div>
+          <div class="form-group"><label>تحویل‌گیرنده</label><input id="so-receiver"></div>
+          <div class="form-group"><label>دلیل خروج</label>
+            <select id="so-reason">
+              <option value="مصرف/تعمیرات">مصرف/تعمیرات</option><option value="فروش">فروش</option>
+              <option value="برگشت به تأمین‌کننده">برگشت به تأمین‌کننده</option><option value="انتقال بین انبارها">انتقال بین انبارها</option>
+              <option value="ضایعات">ضایعات</option><option value="سایر">سایر</option>
+            </select>
+          </div>
+        </div>
+        <button id="so-submit"><span class="icon icon-check"></span>ثبت حواله خروج</button>
+      </div>
+      <div class="card">
+        <h2><span class="icon icon-file-lines"></span>آخرین حواله‌های خروج</h2>
+        <table><thead><tr><th>شماره سند</th><th>تاریخ</th><th>کالا</th><th>تعداد</th><th>تحویل‌گیرنده</th></tr></thead>
+        <tbody id="stockout-list-body"></tbody></table>
+      </div>
+    </section>
+
+    <!-- ============ مرجوعی ============ -->
+    <section id="returns-tab" class="hidden">
+      <div class="card">
+        <h2><span class="icon icon-rotate-left"></span>ثبت مرجوعی کالای مصرفی</h2>
+        <div id="returns-error"></div>
+        <div class="form-row">
+          <div class="form-group"><label>کالا</label><input id="rt-product" list="products-datalist" placeholder="کد یا نام کالا را تایپ کنید..."></div>
+          <div class="form-group"><label>تعداد</label><input id="rt-quantity" type="number" min="1"></div>
+          <div class="form-group"><label>تاریخ</label><input type="hidden" id="rt-date" data-jalali="1"></div>
+          <div class="form-group"><label>تحویل‌دهنده</label><input id="rt-returned-by"></div>
+          <div class="form-group"><label>وضعیت کالا</label>
+            <select id="rt-condition">
+              <option value="سالم و قابل استفاده مجدد">سالم و قابل استفاده مجدد</option>
+              <option value="استفاده نشده - در بسته‌بندی اصلی">استفاده نشده - در بسته‌بندی اصلی</option>
+              <option value="مغایر با درخواست">مغایر با درخواست</option><option value="مازاد بر مصرف">مازاد بر مصرف</option>
+            </select>
+          </div>
+        </div>
+        <button id="rt-submit"><span class="icon icon-check"></span>ثبت مرجوعی</button>
+      </div>
+      <div class="card">
+        <h2><span class="icon icon-file-lines"></span>آخرین مرجوعی‌ها</h2>
+        <table><thead><tr><th>شماره سند</th><th>تاریخ</th><th>کالا</th><th>تعداد</th><th>تحویل‌دهنده</th><th>وضعیت</th></tr></thead>
+        <tbody id="returns-list-body"></tbody></table>
+      </div>
+    </section>
+
+    <!-- ============ امانت ابزار ============ -->
+    <section id="custody-tab" class="hidden">
+      <div class="card">
+        <h2><span class="icon icon-people-arrows"></span>تحویل امانی ابزار</h2>
+        <div id="custody-issue-error"></div>
+        <div class="form-row">
+          <div class="form-group"><label>ابزار</label><input id="ci-product" list="tools-datalist" placeholder="کد یا نام ابزار (فقط قابل‌برگشت)..."></div>
+          <div class="form-group"><label>تعداد</label><input id="ci-quantity" type="number" min="1" value="1"></div>
+          <div class="form-group"><label>تاریخ تحویل</label><input type="hidden" id="ci-date" data-jalali="1"></div>
+          <div class="form-group"><label>تحویل‌گیرنده</label><input id="ci-holder"></div>
+          <div class="form-group"><label>واحد</label>
+            <select id="ci-unit">
+              <option value="تولید">تولید</option><option value="تعمیر و نگهداری">تعمیر و نگهداری</option>
+              <option value="پشتیبانی و لجستیک">پشتیبانی و لجستیک</option><option value="آزمایشگاه و کنترل کیفی">آزمایشگاه و کنترل کیفی</option>
+              <option value="ایمنی و بهداشت">ایمنی و بهداشت</option><option value="اداری و منابع انسانی">اداری و منابع انسانی</option>
+              <option value="مدیریت">مدیریت</option><option value="سایر">سایر</option>
+            </select>
+          </div>
+          <div class="form-group"><label>موعد بازگشت</label><input type="hidden" id="ci-expected-return" data-jalali="1"></div>
+        </div>
+        <button id="ci-submit"><span class="icon icon-check"></span>ثبت تحویل امانی</button>
+      </div>
+
+      <div class="card">
+        <h2><span class="icon icon-rotate-left"></span>بازگشت ابزار امانی</h2>
+        <div id="custody-return-error"></div>
+        <div class="form-row">
+          <div class="form-group"><label>رکورد امانت باز</label><select id="cr-record"></select></div>
+          <div class="form-group"><label>تاریخ بازگشت</label><input type="hidden" id="cr-date" data-jalali="1"></div>
+          <div class="form-group"><label>وضعیت بازگشت</label>
+            <select id="cr-condition">
+              <option value="سالم">سالم و بدون آسیب</option><option value="نیازمند تعمیر">نیازمند تعمیر</option>
+              <option value="آسیب‌دیده">آسیب‌دیده / معیوب</option><option value="مفقود">مفقود شده</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group"><label>توضیحات</label><input id="cr-notes"></div>
+        <button id="cr-submit"><span class="icon icon-check"></span>ثبت بازگشت</button>
+      </div>
+
+      <div class="card">
+        <h2><span class="icon icon-clipboard-list"></span>وضعیت فعلی ابزارآلات</h2>
+        <table><thead><tr><th>شماره سند</th><th>ابزار</th><th>تعداد</th><th>تحویل‌گیرنده</th><th>تاریخ تحویل</th><th>موعد بازگشت</th><th>وضعیت</th><th>عملیات</th></tr></thead>
+        <tbody id="custody-list-body"></tbody></table>
+      </div>
+    </section>
+
+    <!-- ============ تعمیرگاه ============ -->
+    <section id="repair-tab" class="hidden">
+      <div class="card">
+        <h2><span class="icon icon-screwdriver-wrench"></span>ارسال به تعمیر</h2>
+        <div id="repair-send-error"></div>
+        <div class="form-row">
+          <div class="form-group"><label>کالا/ابزار</label><input id="rs-product" list="products-datalist" placeholder="کد یا نام کالا را تایپ کنید..."></div>
+          <div class="form-group"><label>تعداد</label><input id="rs-quantity" type="number" min="1" value="1"></div>
+          <div class="form-group"><label>تاریخ ارسال</label><input type="hidden" id="rs-date" data-jalali="1"></div>
+          <div class="form-group"><label>تحویل‌دهنده</label><input id="rs-submitted-by"></div>
+        </div>
+        <div class="form-group"><label>شرح خرابی</label><input id="rs-issue"></div>
+        <button id="rs-submit"><span class="icon icon-check"></span>ثبت ارسال به تعمیر</button>
+      </div>
+
+      <div class="card">
+        <h2><span class="icon icon-check"></span>تکمیل و بازگشت از تعمیر</h2>
+        <div id="repair-complete-error"></div>
+        <div class="form-row">
+          <div class="form-group"><label>رکورد تعمیر باز</label><select id="rc-record"></select></div>
+          <div class="form-group"><label>تاریخ تکمیل</label><input type="hidden" id="rc-date" data-jalali="1"></div>
+          <div class="form-group"><label>نتیجه</label>
+            <select id="rc-result">
+              <option value="تعمیر شد - سالم">تعمیر شد و سالم است</option>
+              <option value="غیرقابل تعمیر - اسقاط">غیرقابل تعمیر (اسقاط)</option>
+              <option value="نیاز به قطعه یدکی">نیاز به قطعه یدکی (ناتمام)</option>
+            </select>
+          </div>
+          <div class="form-group"><label>تعمیرکار</label><input id="rc-technician"></div>
+          <div class="form-group"><label>تأییدکننده تعمیرات</label><input id="rc-approver"></div>
+        </div>
+        <button id="rc-submit"><span class="icon icon-check"></span>ثبت تکمیل تعمیر</button>
+      </div>
+
+      <div class="card">
+        <h2><span class="icon icon-clipboard-list"></span>وضعیت فعلی کالاهای در تعمیر</h2>
+        <table><thead><tr><th>شماره سند</th><th>کالا</th><th>تعداد</th><th>تحویل‌دهنده</th><th>تاریخ ارسال</th><th>وضعیت</th><th>عملیات</th></tr></thead>
+        <tbody id="repair-list-body"></tbody></table>
+      </div>
+    </section>
+
+    <!-- ============ درخواست‌ها ============ -->
+    <section id="requests-tab" class="hidden">
+      <div class="card">
+        <h2><span class="icon icon-clipboard-list"></span>ثبت درخواست کالا</h2>
+        <div id="requests-error"></div>
+        <div class="form-row">
+          <div class="form-group"><label>کالا</label><input id="rq-product" list="products-datalist" placeholder="کد یا نام کالا را تایپ کنید..."></div>
+          <div class="form-group"><label>تعداد</label><input id="rq-quantity" type="number" min="1"></div>
+          <div class="form-group"><label>تاریخ</label><input type="hidden" id="rq-date" data-jalali="1"></div>
+          <div class="form-group"><label>اولویت</label>
+            <select id="rq-priority"><option value="عادی">عادی</option><option value="فوری">فوری</option><option value="بحرانی">بحرانی</option></select>
+          </div>
+        </div>
+        <button id="rq-submit"><span class="icon icon-check"></span>ثبت درخواست</button>
+        <button id="rq-auto-generate" class="outline" style="margin-right:.5rem;">ایجاد خودکار برای کمبودها</button>
+      </div>
+      <div class="card">
+        <h2><span class="icon icon-clipboard-list"></span>فهرست درخواست‌ها</h2>
+        <table><thead><tr><th>شماره</th><th>کالا</th><th>تعداد</th><th>تاریخ</th><th>اولویت</th><th>وضعیت</th><th>عملیات</th></tr></thead>
+        <tbody id="requests-list-body"></tbody></table>
+      </div>
+    </section>
+
+    <!-- ============ مدیریت اسناد ============ -->
+    <section id="documents-tab" class="hidden">
+      <div class="card">
+        <h2><span class="icon icon-file-lines"></span>مدیریت اسناد صادرشده</h2>
+        <div class="alert alert-warn">ویرایش و ابطال اسناد فقط برای مدیر سیستم و نیازمند ثبت دلیل است؛ در لاگ حسابرسی دائمی ثبت می‌شود.
+        سند «باطل» حذف نمی‌شود: شماره‌اش برای همیشه محفوظ می‌ماند، اثرش بر موجودی برگردانده می‌شود و در گزارش‌ها با برچسب باطل دیده می‌شود.</div>
+        <div style="display:flex;gap:1rem;align-items:flex-end;flex-wrap:wrap;">
+          <div class="form-group" style="max-width:320px;"><label>جستجو</label><input id="doc-search" placeholder="شماره سند، کالا، طرف حساب..."></div>
+          <div class="form-group"><label><input type="checkbox" id="doc-show-voided"> نمایش اسناد باطل‌شده</label></div>
+        </div>
+        <table><thead><tr><th>شماره سند</th><th>تاریخ</th><th>نوع</th><th>کالا</th><th>تعداد</th><th>طرف حساب</th><th>وضعیت</th><th>عملیات</th></tr></thead>
+        <tbody id="documents-list-body"></tbody></table>
+        <div id="documents-pager" style="display:flex;gap:.6rem;align-items:center;margin-top:.8rem;">
+          <button class="outline" id="doc-prev" style="padding:.3rem .8rem;font-size:.78rem;">صفحه قبل</button>
+          <span id="doc-page-info" style="font-size:.82rem;color:var(--ink-soft);"></span>
+          <button class="outline" id="doc-next" style="padding:.3rem .8rem;font-size:.78rem;">صفحه بعد</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ گزارش‌ها ============ -->
+    <section id="reports-tab" class="hidden">
+      <div class="card">
+        <h2><span class="icon icon-chart-column"></span>گزارش موجودی و کمبود</h2>
+        <button id="report-shortage-btn"><span class="icon icon-triangle-exclamation"></span>ایجاد گزارش کمبود/هشدار</button>
+        <div id="shortage-report-result" style="margin-top:1rem;"></div>
+      </div>
+      <div class="card">
+        <h2><span class="icon icon-chart-column"></span>کاردکس کالا</h2>
+        <div class="form-row">
+          <div class="form-group"><label>کالا</label><input id="kx-product" list="products-datalist" placeholder="کد یا نام کالا را تایپ کنید..."></div>
+          <div class="form-group"><label>از تاریخ</label><input type="hidden" id="kx-start" data-jalali="1"></div>
+          <div class="form-group"><label>تا تاریخ</label><input type="hidden" id="kx-end" data-jalali="1"></div>
+        </div>
+        <button id="kx-submit">ایجاد کاردکس</button>
+        <div id="kardex-result" style="margin-top:1rem;"></div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<div id="print-area"></div>
+
+<script src="jalali.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

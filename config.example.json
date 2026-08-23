@@ -1,0 +1,22 @@
+{
+  "mode": "lan",
+  "httpPort": 8080,
+  "httpsPort": 443,
+  "domain": "",
+  "certPath": "",
+  "keyPath": "",
+  "webrootPath": "./acme-webroot",
+  "extraAllowedOrigins": "",
+  "loginMaxAttempts": 5,
+  "loginWindowMs": 600000,
+  "loginBlockMs": 900000,
+  "backupEnabled": true,
+  "backupIntervalHours": 24,
+  "backupKeepCount": 30,
+  "backupDir": "./backups",
+  "trustProxy": false,
+  "minPasswordLength": 8,
+  "initialAdminPassword": "111111",
+  "maxPageSize": 200,
+  "backupMirrorDir": ""
+}

@@ -1,0 +1,12 @@
+{
+  "name": "warehouse-system-server",
+  "version": "1.0.0",
+  "description": "سرور شبکه‌ای سیستم انبارداری - بدون وابستگی به بسته‌های خارجی",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js"
+  },
+  "engines": {
+    "node": ">=22.5.0"
+  }
+}
